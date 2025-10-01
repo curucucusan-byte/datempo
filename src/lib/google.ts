@@ -48,11 +48,11 @@ export async function exchangeCodeForTokens(code: string) {
 const TOKENS_COLLECTION = "googleTokens";
 
 export type GoogleTokens = {
-  access_token?: string;
-  refresh_token?: string;
-  expiry_date?: number;
-  scope?: string;
-  token_type?: string;
+  access_token?: string | null;
+  refresh_token?: string | null;
+  expiry_date?: number | null;
+  scope?: string | null;
+  token_type?: string | null;
 };
 
 export async function storeTokens(uid: string, tokens: GoogleTokens) {

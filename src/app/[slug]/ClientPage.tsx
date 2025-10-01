@@ -219,9 +219,6 @@ export default function ClientPage({ slug }: ClientPageProps) {
           <li>Evita overbooking: respeita compromissos já existentes no Google.</li>
           <li>Confirmações e lembretes por WhatsApp para reduzir faltas.</li>
         </ul>
-        {prof?.description && (
-          <p className="mt-2 text-sm text-slate-300/90">{prof.description}</p>
-        )}
       </header>
 
       <main className="mx-auto max-w-5xl px-6 pb-16 grid lg:grid-cols-2 gap-8">
