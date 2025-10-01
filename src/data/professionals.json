@@ -1,0 +1,21 @@
+[
+  {
+    "slug": "demo",
+    "name": "Profissional Demo",
+    "description": "Atendimento fictício para demonstrar o fluxo de agendamento via ZapAgenda.",
+    "phone": "+5551999999999",
+    "services": [
+      { "name": "Consulta", "minutes": 60 },
+      { "name": "Retorno", "minutes": 30 }
+    ],
+    "workHours": {
+      "monday": ["09:00", "10:00", "11:00", "14:00", "15:00"],
+      "tuesday": ["09:00", "10:00", "11:00", "14:00", "15:00"],
+      "wednesday": ["09:00", "10:00", "11:00", "14:00", "15:00"],
+      "thursday": ["09:00", "10:00", "11:00", "14:00", "15:00"],
+      "friday": ["09:00", "10:00", "11:00", "14:00", "15:00"],
+      "saturday": [],
+      "sunday": []
+    }
+  }
+]

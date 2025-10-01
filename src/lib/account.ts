@@ -1,0 +1,195 @@
+import { getDb } from "@/lib/firebaseAdmin";
+import {
+  ACTIVE_PLANS,
+  DEFAULT_ACTIVE_PLAN_ID,
+  isActivePlan,
+  type ActivePlanId,
+  type PlanId,
+} from "@/lib/plans";
+
+export type ReminderSettings = {
+  enabled: boolean;
+  windowMinutes: number;
+};
+
+export type Account = {
+  uid: string;
+  email?: string | null;
+  plan: PlanId;
+  status: "active" | "trial" | "past_due" | "canceled";
+  trialEndsAt?: string | null; // ISO
+  reminders: ReminderSettings;
+  linkedCalendars: { id: string; summary: string }[];
+  activeCalendarId?: string | null;
+  lastCalendarSwapAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const COLLECTION = "accounts";
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function addDays(days: number) {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+}
+
+function defaultRemindersForPlan(plan: PlanId): ReminderSettings {
+  const baseMinutes = 120;
+  if (plan === "pro") {
+    return { enabled: true, windowMinutes: baseMinutes };
+  }
+  return { enabled: false, windowMinutes: baseMinutes };
+}
+
+function sanitizeReminders(plan: PlanId, value: ReminderSettings | undefined): ReminderSettings {
+  const base = value ?? defaultRemindersForPlan(plan);
+  const minutes = Number.isFinite(base.windowMinutes) ? Math.max(5, Math.round(base.windowMinutes)) : 120;
+  if (plan !== "pro") {
+    return { enabled: false, windowMinutes: minutes };
+  }
+  return { enabled: Boolean(base.enabled), windowMinutes: minutes };
+}
+
+function normalizePlan(plan: unknown): PlanId {
+  if (plan === "inactive") return "inactive";
+  if (plan === "essencial" || plan === "pro") return plan;
+  return "inactive";
+}
+
+function normalizeAccount(data: Account): Account {
+  const plan = normalizePlan(data.plan);
+  const reminders = sanitizeReminders(plan, data.reminders);
+  return {
+    ...data,
+    plan,
+    reminders,
+    linkedCalendars: Array.isArray(data.linkedCalendars) ? data.linkedCalendars : [],
+    activeCalendarId: data.activeCalendarId ?? null,
+    lastCalendarSwapAt: data.lastCalendarSwapAt ?? null,
+  };
+}
+
+async function maybeExpireTrial(account: Account): Promise<Account> {
+  if (account.status !== "trial" || !account.trialEndsAt) {
+    return account;
+  }
+  const ends = new Date(account.trialEndsAt);
+  if (Number.isNaN(ends.getTime()) || ends.getTime() > Date.now()) {
+    return account;
+  }
+  const db = getDb();
+  const updates: Partial<Account> = {
+    status: "canceled",
+    plan: "inactive",
+    updatedAt: nowIso(),
+    reminders: sanitizeReminders("inactive", account.reminders),
+  };
+  await db.collection(COLLECTION).doc(account.uid).set(updates, { merge: true });
+  return normalizeAccount({ ...account, ...updates });
+}
+
+export async function getAccount(uid: string): Promise<Account | null> {
+  const db = getDb();
+  const doc = await db.collection(COLLECTION).doc(uid).get();
+  if (!doc.exists) return null;
+  const raw = doc.data() as Account;
+  const normalized = normalizeAccount(raw);
+  return maybeExpireTrial(normalized);
+}
+
+export async function ensureAccount(uid: string, email?: string | null): Promise<Account> {
+  const existing = await getAccount(uid);
+  if (existing) return existing;
+  const plan: ActivePlanId = DEFAULT_ACTIVE_PLAN_ID;
+  const now = nowIso();
+  const trialEnds = addDays(ACTIVE_PLANS[plan].trialDays);
+  const account: Account = {
+    uid,
+    email: email ?? null,
+    plan,
+    status: "trial",
+    trialEndsAt: trialEnds,
+    reminders: defaultRemindersForPlan(plan),
+    linkedCalendars: [],
+    activeCalendarId: null,
+    lastCalendarSwapAt: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const db = getDb();
+  await db.collection(COLLECTION).doc(uid).set(account);
+  return normalizeAccount(account);
+}
+
+export function isAccountActive(account: Account): boolean {
+  if (account.plan === "inactive") return false;
+  if (account.status === "active") return true;
+  if (account.status !== "trial") return false;
+  if (!account.trialEndsAt) return true;
+  const ends = new Date(account.trialEndsAt);
+  return !Number.isNaN(ends.getTime()) && ends.getTime() > Date.now();
+}
+
+export function getReminderSettings(account: Account): ReminderSettings {
+  return sanitizeReminders(account.plan, account.reminders);
+}
+
+export function canSendReminders(account: Account): boolean {
+  if (!isAccountActive(account)) return false;
+  if (account.plan !== "pro") return false;
+  return getReminderSettings(account).enabled;
+}
+
+export async function updateAccount(
+  uid: string,
+  updates: {
+    plan?: PlanId;
+    status?: Account["status"];
+    trialEndsAt?: string | null;
+    reminders?: Partial<ReminderSettings>;
+  }
+): Promise<Account> {
+  const current = await ensureAccount(uid, null);
+
+  const nextPlan = normalizePlan(updates.plan ?? current.plan);
+  const nextStatus = updates.status ?? current.status;
+
+  const payload: Partial<Account> = {
+    plan: nextPlan,
+    status: nextStatus,
+    updatedAt: nowIso(),
+  };
+
+  if (typeof updates.trialEndsAt !== "undefined") {
+    payload.trialEndsAt = updates.trialEndsAt;
+  }
+
+  if (typeof updates.reminders !== "undefined") {
+    const baseAccount = normalizeAccount({ ...current, plan: nextPlan } as Account);
+    const merged: ReminderSettings = {
+      ...baseAccount.reminders,
+      ...updates.reminders,
+    } as ReminderSettings;
+    payload.reminders = sanitizeReminders(nextPlan, merged);
+  }
+
+  if (updates.plan && isActivePlan(nextPlan) && nextStatus === "trial" && !updates.trialEndsAt) {
+    payload.trialEndsAt = addDays(ACTIVE_PLANS[nextPlan].trialDays);
+  }
+
+  // Garantir que plano ativo tenha lembranças coerentes
+  if (payload.plan === "inactive") {
+    payload.reminders = sanitizeReminders("inactive", payload.reminders ?? current.reminders);
+  }
+
+  const db = getDb();
+  await db.collection(COLLECTION).doc(uid).set(payload, { merge: true });
+  const refreshed = await getAccount(uid);
+  if (!refreshed) {
+    throw new Error("Falha ao atualizar conta.");
+  }
+  return refreshed;
+}

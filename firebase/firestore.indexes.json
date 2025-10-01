@@ -1,0 +1,12 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "appointments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "startISO", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
