@@ -1,7 +1,4 @@
-import { Config } from 'next';
-
-// Configuração atualizada em: 2025-09-29
-const config: Config = {
+const nextConfig = {
   // Force new deployment: 2025-09-29
   eslint: {
     ignoreDuringBuilds: true,
@@ -44,4 +41,6 @@ const config: Config = {
   },
 };
 
-export default config;
+export default nextConfig;
+
+
