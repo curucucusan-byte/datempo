@@ -1,3 +1,5 @@
+// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/api/session/route.ts
+
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -35,6 +37,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
-  await cookies().delete(SESSION_COOKIE);
+  const cookieStore = cookies();
+  cookieStore.delete(SESSION_COOKIE);
   return NextResponse.json({ ok: true });
 }

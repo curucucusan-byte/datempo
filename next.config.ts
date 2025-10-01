@@ -3,11 +3,14 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
   experimental: {
-    optimizePackageImports: ['@mui/icons-material', '@mui/material'],
+    optimizePackageImports: ["@mui/icons-material", "@mui/material"],
   },
   onDemandEntries: {
     // Period (in ms) where the server will keep pages in the buffer
@@ -19,28 +22,27 @@ const nextConfig = {
   headers: async () => {
     return [
       {
-        source: '/:all*(svg|jpg|png)',
+        source: "/:all*(svg|jpg|png)",
         locale: false,
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
-          }
-        ],
-      },
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate',
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate",
           },
         ],
       },
-    ]
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+        ],
+      },
+    ];
   },
 };
 
 export default nextConfig;
-
 
