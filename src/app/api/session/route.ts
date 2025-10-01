@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       sameSite: "lax",
       maxAge: SESSION_MAX_AGE_SECONDS,
       path: "/",
-    });
+    } );
     return res;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Falha ao criar sessão.";
@@ -35,6 +35,6 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
-  cookies().delete(SESSION_COOKIE);
+  await cookies().delete(SESSION_COOKIE);
   return NextResponse.json({ ok: true });
 }
