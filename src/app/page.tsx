@@ -91,9 +91,9 @@ export default function LandingWhatsApp() {
             </h1>
             {/* Destaque da integração: logos maiores e peso igual */}
             <div className="mt-4 inline-flex items-center gap-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3">
-              <Image src="/logos/calender.webp" alt="Google Agenda" width={40} height={40} className="h-10 w-10" />
+              <Image src="/logos/calender.webp" alt="Google Agenda" width={40} height={40} className="h-10 w-10" unoptimized priority />
               <span className="text-sm font-medium text-emerald-200">Google Agenda + WhatsApp</span>
-              <Image src="/logos/whatsapp-green-filled.png" alt="WhatsApp" width={40} height={40} className="h-10 w-10" />
+              <Image src="/logos/whatsapp-green-filled.png" alt="WhatsApp" width={40} height={40} className="h-10 w-10" unoptimized />
             </div>
             <p className="mt-4 text-slate-300">
               Link único para agendar. Sincroniza com o Google Agenda e confirma no WhatsApp. Simples e direto.
