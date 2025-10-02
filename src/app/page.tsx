@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 import { ACTIVE_PLANS } from "@/lib/plans";
@@ -91,23 +92,14 @@ export default function LandingWhatsApp() {
             {/* Destaque da integração: logos maiores e peso igual */}
             <div className="mt-4 inline-flex items-center gap-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 48 48"
-                  className="h-7 w-7 text-[#4285F4]"
-                  aria-hidden="true"
-                >
-                  <rect x="6" y="10" width="36" height="30" rx="6" fill="#E8F0FE" />
-                  <path
-                    d="M36 10v4a2 2 0 1 1-4 0v-4h-4v4a2 2 0 1 1-4 0v-4h-4v4a2 2 0 1 1-4 0v-4h-2a6 6 0 0 0-6 6v18a6 6 0 0 0 6 6h20a6 6 0 0 0 6-6V16a6 6 0 0 0-6-6h-2Z"
-                    fill="#4285F4"
-                  />
-                  <rect x="12" y="22" width="24" height="14" rx="2" fill="white" />
-                  <path
-                    d="M20 32h-2v-6h2l2.5 3 2.5-3h2v6h-2v-3.2l-2.3 3.2H24l-2.3-3.2V32Zm12 0h-6v-1.8l3.8-4.2H26v-1.8h6v1.8l-3.8 4.2H32V32Z"
-                    fill="#1A237E"
-                  />
-                </svg>
+                <Image
+                  src="/calendar.png"
+                  alt="Google Agenda"
+                  width={32}
+                  height={32}
+                  className="h-7 w-7"
+                  priority
+                />
               </span>
               <span className="text-sm font-medium text-emerald-200">Google Agenda + WhatsApp</span>
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366]">
