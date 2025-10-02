@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 
 // import { getProfessional, resolveProfessional, getServiceMinutes } from "@/lib/professionals"; // Removido
 import { loadAppointments } from "@/lib/store";
-import { getAccount } from "@/lib/account";
 import { freeBusyForDate, getLinkedCalendarBySlug } from "@/lib/google"; // Adicionado getLinkedCalendarBySlug
 
 const WEEKDAYS = [
@@ -16,8 +15,6 @@ const WEEKDAYS = [
   "friday",
   "saturday",
 ] as const;
-
-type WeekdayKey = (typeof WEEKDAYS)[number];
 
 type AvailabilityResult = {
   ok: true;
@@ -60,7 +57,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get("slug");
   const date = searchParams.get("date");
-  // const service = searchParams.get("service") ?? undefined; // Removido
+  const serviceParam = searchParams.get("service") ?? undefined;
 
   if (!slug) {
     return NextResponse.json<ErrorResult>(
@@ -97,42 +94,48 @@ export async function GET(req: Request) {
     return NextResponse.json<ErrorResult>({ ok: false, error: "Agenda não encontrada." }, { status: 404 });
   }
 
-  // const fallbackMinutes = professional.services?.[0]?.minutes ?? 60; // Removido
-  // const slotMinutes = Math.max(
-  //   5,
-  //   getServiceMinutes(professional, service ?? "", fallbackMinutes)
-  // ); // Removido
-  const slotMinutes = 60; // Duração padrão de 60 minutos, ou pode ser configurável na agenda
+  const services = Array.isArray(linkedCalendar.services) ? linkedCalendar.services : [];
+  const selectedService = services.find((service) => service.name === serviceParam?.trim());
+  const slotMinutes = Math.max(5, Math.min(8 * 60, selectedService?.minutes ?? services[0]?.minutes ?? 60));
 
   // Definição de slots base: preferimos Google Calendar.
   const ownerUid = linkedCalendar.ownerUid ?? null; // Usar ownerUid da agenda
   let googleBusy: { start: string; end: string }[] | null = null;
   let daySlots: string[] = [];
   if (ownerUid) {
-    const account = await getAccount(ownerUid);
     const calId = linkedCalendar.id; // Usar o ID da agenda vinculada
     if (calId) {
       googleBusy = await freeBusyForDate(ownerUid, calId, date);
     }
   }
 
-  if (googleBusy) {
-    // Gera slots de 08:00 até 20:00 pelo tamanho do serviço
-    const startHour = 8;
-    const endHour = 20;
-    for (let h = startHour; h < endHour; h++) {
-      for (let m = 0; m < 60; m += slotMinutes) {
-        const hh = String(h).padStart(2, "0");
-        const mm = String(m).padStart(2, "0");
-        daySlots.push(`${hh}:${mm}`);
-      }
+  const workHours = linkedCalendar.workHours ?? null;
+  if (workHours) {
+    const dayIndex = parsedDate.utcDate.getUTCDay();
+    const weekday = WEEKDAYS[dayIndex];
+    const slotsForDay = workHours[weekday] ?? [];
+    if (slotsForDay.length) {
+      daySlots = slotsForDay.filter((time) => /^\d{2}:\d{2}$/.test(time));
     }
-  } else {
-    // Fallback simples 09:00–18:00, caso sem Google
-    for (let h = 9; h < 18; h++) {
-      const hh = String(h).padStart(2, "0");
-      daySlots.push(`${hh}:00`);
-      if (slotMinutes <= 30) daySlots.push(`${hh}:30`);
+  }
+
+  if (!daySlots.length) {
+    if (googleBusy) {
+      const startHour = 8;
+      const endHour = 20;
+      for (let h = startHour; h < endHour; h++) {
+        for (let m = 0; m < 60; m += slotMinutes) {
+          const hh = String(h).padStart(2, "0");
+          const mm = String(m).padStart(2, "0");
+          daySlots.push(`${hh}:${mm}`);
+        }
+      }
+    } else {
+      for (let h = 9; h < 18; h++) {
+        const hh = String(h).padStart(2, "0");
+        daySlots.push(`${hh}:00`);
+        if (slotMinutes <= 30) daySlots.push(`${hh}:30`);
+      }
     }
   }
 
@@ -174,4 +177,3 @@ export async function GET(req: Request) {
 
   return NextResponse.json(result);
 }
-

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resolveProfessional } from "@/lib/professionals";
+
+import { getLinkedCalendarBySlug } from "@/lib/google";
 
 export async function GET(
   request: NextRequest,
@@ -10,9 +11,18 @@ export async function GET(
   if (!slug) {
     return NextResponse.json({ ok: false, error: "Slug obrigatório." }, { status: 400 });
   }
-  const professional = await resolveProfessional(slug);
-  if (!professional) {
-    return NextResponse.json({ ok: false, error: "Profissional não encontrado." }, { status: 404 });
+  const calendar = await getLinkedCalendarBySlug(slug);
+  if (!calendar) {
+    return NextResponse.json({ ok: false, error: "Agenda não encontrada." }, { status: 404 });
   }
-  return NextResponse.json({ ok: true, professional });
+
+  return NextResponse.json({ ok: true, professional: {
+    slug: calendar.slug,
+    name: calendar.description || calendar.summary,
+    description: calendar.description,
+    phone: calendar.whatsappNumber,
+    calendarId: calendar.id,
+    services: calendar.services,
+    workHours: calendar.workHours,
+  } });
 }

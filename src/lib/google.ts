@@ -10,6 +10,15 @@ const SCOPES = [
   "https://www.googleapis.com/auth/userinfo.email",
 ];
 
+export type CalendarService = {
+  name: string;
+  minutes: number;
+};
+
+export type CalendarWorkHours = Record<string, string[]>;
+
+const DEFAULT_CALENDAR_TIMEZONE = process.env.DEFAULT_CALENDAR_TIMEZONE || "America/Sao_Paulo";
+
 function required(name: string, value: string | undefined) {
   if (!value) {
     throw new Error(`Variável ${name} não configurada.`);
@@ -97,9 +106,17 @@ export type LinkedCalendar = {
   summary: string;
   ownerUid: string;
   slug: string;
-  description: string; // Tornar obrigatório
-  whatsappNumber: string; // Tornar obrigatório
+  description: string;
+  whatsappNumber: string;
   active: boolean;
+  services?: CalendarService[];
+  workHours?: CalendarWorkHours;
+  requiresPrepayment?: boolean;
+  prepaymentMode?: "manual" | "stripe";
+  prepaymentAmountCents?: number | null;
+  prepaymentCurrency?: string | null;
+  manualPixKey?: string | null;
+  manualInstructions?: string | null;
 };
 
 export async function listCalendars(uid: string) {
@@ -160,7 +177,8 @@ export async function createGoogleCalendarEvent(
   description: string,
   start: Date,
   end: Date,
-  attendees: { email: string }[] = []
+  attendees: { email: string }[] = [],
+  timeZone?: string,
 ) {
   const auth = await getAuthenticatedClient(ownerUid);
   if (!auth) {
@@ -168,16 +186,18 @@ export async function createGoogleCalendarEvent(
   }
   const calendar = google.calendar({ version: "v3", auth });
 
+  const tz = timeZone && isValidTimeZone(timeZone) ? timeZone : DEFAULT_CALENDAR_TIMEZONE;
+
   const event = {
     summary: summary,
     description: description,
     start: {
       dateTime: start.toISOString(),
-      timeZone: "America/Sao_Paulo", // Ou o fuso horário do usuário/agenda
+      timeZone: tz, // Mantém eventos alinhados ao fuso da agenda
     },
     end: {
       dateTime: end.toISOString(),
-      timeZone: "America/Sao_Paulo",
+      timeZone: tz,
     },
     attendees: attendees,
     reminders: {
@@ -197,3 +217,11 @@ export async function createGoogleCalendarEvent(
   return res.data;
 }
 
+function isValidTimeZone(tz: string) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}

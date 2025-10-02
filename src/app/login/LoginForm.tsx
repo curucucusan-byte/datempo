@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleAuthProvider, signInWithPopup, type Auth } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
+import Image from "next/image";
 
 import { getClientAuth } from "@/lib/firebaseClient";
 
@@ -84,8 +85,15 @@ export default function LoginForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={loading || googleLoading}
-        className="w-full rounded-xl bg-white/90 py-3 text-sm font-semibold text-slate-900 hover:bg-white disabled:opacity-60"
+        className="w-full rounded-xl bg-white/90 py-3 text-sm font-semibold text-slate-900 hover:bg-white disabled:opacity-60 inline-flex items-center justify-center gap-2"
       >
+        <Image
+          src="/logos/google.webp"
+          alt="Google"
+          width={18}
+          height={18}
+          className="h-[18px] w-[18px]"
+        />
         {googleLoading ? "Conectando..." : "Entrar com Google"}
       </button>
       <p className="text-xs text-slate-400">

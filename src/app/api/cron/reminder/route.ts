@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import { loadAppointments, markReminderSent } from "@/lib/store";
-import { getProfessional, resolveProfessional } from "@/lib/professionals";
 import { sendWhats } from "@/lib/whats";
 import { authenticateRequest } from "@/lib/session";
 import {
@@ -11,6 +10,7 @@ import {
   isAccountActive,
   type Account,
 } from "@/lib/account";
+import { getLinkedCalendarBySlug, type LinkedCalendar } from "@/lib/google";
 
 const FALLBACK_WINDOW_MINUTES = Number(process.env.REMINDER_WINDOW_MINUTES ?? "120");
 const FALLBACK_NOTIFY_OWNER = process.env.REMINDER_NOTIFY_OWNER === "true";
@@ -33,21 +33,21 @@ export async function POST(req: Request) {
   const now = new Date();
   const appointments = await loadAppointments();
 
-  const professionalCache = new Map<string, Awaited<ReturnType<typeof resolveProfessional>> | null>();
+  const calendarCache = new Map<string, LinkedCalendar | null>();
   const accountCache = new Map<string, Account | null>();
+
+  async function getCalendar(apptSlug: string) {
+    if (!calendarCache.has(apptSlug)) {
+      const calendar = await getLinkedCalendarBySlug(apptSlug);
+      calendarCache.set(apptSlug, calendar);
+    }
+    return calendarCache.get(apptSlug);
+  }
 
   async function getOwnerUid(apptSlug: string, savedOwner?: string | null) {
     if (savedOwner) return savedOwner;
-    if (!professionalCache.has(apptSlug)) {
-      const fromLocal = getProfessional(apptSlug);
-      if (fromLocal?.ownerUid) {
-        professionalCache.set(apptSlug, fromLocal);
-      } else {
-        professionalCache.set(apptSlug, await resolveProfessional(apptSlug));
-      }
-    }
-    const prof = professionalCache.get(apptSlug);
-    return prof?.ownerUid ?? null;
+    const calendar = await getCalendar(apptSlug);
+    return calendar?.ownerUid ?? null;
   }
 
   async function getOwnerAccount(uid: string) {
@@ -63,15 +63,25 @@ export async function POST(req: Request) {
     Awaited<ReturnType<typeof loadAppointments>>[number] & {
       ownerUid: string | null;
       notifyOwner: boolean;
+      calendar: LinkedCalendar | null;
     }
   > = [];
   for (const appt of appointments) {
     if (appt.reminderSentAt) continue;
+    if (appt.paymentStatus && appt.paymentStatus !== "not_required" && appt.paymentStatus !== "paid") {
+      continue;
+    }
+
     const start = new Date(appt.startISO);
     if (Number.isNaN(start.getTime())) continue;
     if (start <= now) continue;
 
-    const ownerUid = await getOwnerUid(appt.slug, appt.ownerUid);
+    const calendar = await getCalendar(appt.slug);
+    if (!calendar) {
+      continue;
+    }
+
+    const ownerUid = await getOwnerUid(appt.slug, appt.ownerUid ?? calendar.ownerUid);
     let windowMinutes = FALLBACK_WINDOW_MINUTES;
     let notifyOwner = FALLBACK_NOTIFY_OWNER;
     let canSend = Number.isFinite(windowMinutes) && windowMinutes > 0;
@@ -99,7 +109,7 @@ export async function POST(req: Request) {
       continue;
     }
 
-    due.push({ ...appt, ownerUid, notifyOwner });
+    due.push({ ...appt, ownerUid, notifyOwner, calendar });
   }
 
   due.sort((a, b) => a.startISO.localeCompare(b.startISO));
@@ -125,26 +135,18 @@ export async function POST(req: Request) {
         dateStyle: "short",
         timeStyle: "short",
       });
-      let prof = getProfessional(appt.slug);
-      if (!prof && professionalCache.has(appt.slug)) {
-        prof = professionalCache.get(appt.slug) ?? undefined;
-      }
-      if (!prof) {
-        const resolved = await resolveProfessional(appt.slug);
-        professionalCache.set(appt.slug, resolved ?? null);
-        prof = resolved ?? undefined;
-      }
+      const calendar = appt.calendar;
 
       const message =
         `⏰ *Lembrete ZapAgenda*\n` +
-        `Você tem ${appt.service} com ${prof?.name ?? appt.slug} em ${formatRelative(minutesUntil)}.\n` +
+        `Você tem ${appt.service} com ${calendar?.description || calendar?.summary || appt.slug} em ${formatRelative(minutesUntil)}.\n` +
         `Data/Hora: *${humanDate}*\n\n` +
         `Se precisar reagendar, responda esta mensagem.`;
 
       await sendWhats({ to: appt.customerPhone, message });
 
       if (appt.notifyOwner) {
-        const ownerPhone = prof?.phone || process.env.OWNER_DEFAULT_PHONE;
+        const ownerPhone = calendar?.whatsappNumber || process.env.OWNER_DEFAULT_PHONE;
         if (ownerPhone) {
           let trialLine = "";
           if (appt.ownerUid) {

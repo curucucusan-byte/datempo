@@ -1,55 +1,66 @@
-// src/app/api/ics/[id]/route.ts
 import { NextResponse } from "next/server";
+
 import { loadAppointments } from "@/lib/store";
 
-function icsEscape(s: string) {
-  return s.replace(/([,;])/g, "\\$1").replace(/\n/g, "\\n");
+function icsEscape(text: string) {
+  return text
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
 }
 
-type RouteContext = {
-  params: Promise<{ id: string }>;
-};
+function toICSDate(dt: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    dt.getUTCFullYear() +
+    pad(dt.getUTCMonth() + 1) +
+    pad(dt.getUTCDate()) +
+    "T" +
+    pad(dt.getUTCHours()) +
+    pad(dt.getUTCMinutes()) +
+    pad(dt.getUTCSeconds()) +
+    "Z"
+  );
+}
 
-export async function GET(_req: Request, context: RouteContext) {
-  const { id } = await context.params;
-  const appts = await loadAppointments();
-  const a = appts.find(x => x.id === id);
-  if (!a) return NextResponse.json({ error: "not found" }, { status: 404 });
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  const id = params?.id;
+  if (!id) return new NextResponse("Missing id", { status: 400 });
 
-  // Usa timezone local do Brasil para nome, mas ICS precisa UTC no DTSTART/DTEND (ou TZID, mantendo simples: UTC)
-  const dtStart = new Date(a.startISO).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-  const dtEnd   = new Date(a.endISO).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const list = await loadAppointments();
+  const appt = list.find((a) => a.id === id);
+  if (!appt) return new NextResponse("Not found", { status: 404 });
 
-  const summary = `Atendimento: ${a.service} (${a.slug})`;
-  const desc = [
-    `Cliente: ${a.customerName}`,
-    `Contato (WhatsApp): ${a.customerPhone}`,
-  ].filter(Boolean).join("\\n");
+  const dtStart = new Date(appt.startISO);
+  const dtEnd = new Date(appt.endISO);
 
-  const uid = `zapagenda-${a.id}@${process.env.APP_BASE_URL?.replace(/^https?:\/\//, "") || "local"}`;
-  const now = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-
-  const ics = [
+  const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//ZapAgenda//PT-BR",
+    "PRODID:-//ZapAgenda//pt-BR",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:${icsEscape(uid)}`,
-    `DTSTAMP:${now}`,
-    `DTSTART:${dtStart}`,
-    `DTEND:${dtEnd}`,
-    `SUMMARY:${icsEscape(summary)}`,
-    `DESCRIPTION:${icsEscape(desc)}`,
+    `UID:${icsEscape(appt.id)}@zapagenda`,
+    `DTSTAMP:${toICSDate(new Date())}`,
+    `DTSTART:${toICSDate(dtStart)}`,
+    `DTEND:${toICSDate(dtEnd)}`,
+    `SUMMARY:${icsEscape(`${appt.service} — ${appt.customerName}`)}`,
+    `DESCRIPTION:${icsEscape(`Cliente: ${appt.customerName}\\nServiço: ${appt.service}`)}`,
+    `LOCATION:${icsEscape(appt.slug)}`,
     "END:VEVENT",
     "END:VCALENDAR",
-  ].join("\r\n");
+    "",
+  ];
 
-  return new NextResponse(ics, {
+  const body = lines.join("\r\n");
+  return new NextResponse(body, {
+    status: 200,
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${a.id}.ics"`,
+      "Content-Disposition": `attachment; filename=zapagenda-${appt.id}.ics`,
     },
   });
 }
+

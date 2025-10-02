@@ -2,8 +2,9 @@
 
 import { getDb } from "@/lib/firebaseAdmin";
 import { getStripeClient, getOrCreateStripeCustomer, createSubscription, createPixPaymentIntent } from "@/lib/stripe";
-import { updateAccount, getAccount } from "@/lib/account";
+import { updateAccount } from "@/lib/account";
 import { ACTIVE_PLANS, type ActivePlanId } from "@/lib/plans";
+import type { Stripe } from "stripe";
 
 export type PaymentMethod = "credit_card" | "pix";
 
@@ -104,9 +105,14 @@ export async function createCreditCardSubscription(
   await db.collection(SUBSCRIPTIONS_COLLECTION).doc(subscription.id).set(subscription);
 
   // Obter client_secret para o frontend
-  const invoice = stripeSubscription.latest_invoice as any;
-  const paymentIntent = invoice?.payment_intent;
-  const clientSecret = paymentIntent?.client_secret;
+  let clientSecret: string | undefined;
+  const latestInvoice = stripeSubscription.latest_invoice;
+  if (latestInvoice && typeof latestInvoice === "object" && "payment_intent" in latestInvoice) {
+    const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent | Stripe.PaymentIntentReference | null;
+    if (paymentIntent && typeof paymentIntent === "object" && "client_secret" in paymentIntent) {
+      clientSecret = paymentIntent.client_secret ?? undefined;
+    }
+  }
 
   if (!clientSecret) {
     throw new Error("Falha ao obter client_secret para pagamento.");
@@ -283,6 +289,35 @@ export async function getUserLastPixPayment(uid: string): Promise<PaymentRecord 
   }
 
   return snapshot.docs[0].data() as PaymentRecord;
+}
+
+export async function getPaymentRecordById(id: string): Promise<PaymentRecord | null> {
+  const db = getDb();
+  const doc = await db.collection(PAYMENTS_COLLECTION).doc(id).get();
+  if (!doc.exists) return null;
+  return doc.data() as PaymentRecord;
+}
+
+export async function listPaymentsByUid(uid: string): Promise<PaymentRecord[]> {
+  const db = getDb();
+  const snapshot = await db
+    .collection(PAYMENTS_COLLECTION)
+    .where("uid", "==", uid)
+    .orderBy("createdAt", "desc")
+    .limit(20)
+    .get();
+  return snapshot.docs.map((doc) => doc.data() as PaymentRecord);
+}
+
+export async function listSubscriptionsByUid(uid: string): Promise<Subscription[]> {
+  const db = getDb();
+  const snapshot = await db
+    .collection(SUBSCRIPTIONS_COLLECTION)
+    .where("uid", "==", uid)
+    .orderBy("createdAt", "desc")
+    .limit(10)
+    .get();
+  return snapshot.docs.map((doc) => doc.data() as Subscription);
 }
 
 // Verificar se um usuário pode fazer um novo pagamento Pix

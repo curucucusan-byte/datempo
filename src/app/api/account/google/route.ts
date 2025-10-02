@@ -6,7 +6,95 @@ import { authenticateRequest } from "@/lib/session";
 // import type { Professional } from "@/lib/professionals"; // Removido
 import { ensureAccount, getAccount } from "@/lib/account";
 import { CALENDAR_SWAP_INTERVAL_MS, getPlanCalendarLimit } from "@/lib/plans";
-import { LinkedCalendar } from "@/lib/google"; // Importar LinkedCalendar
+import { CalendarService, CalendarWorkHours, LinkedCalendar } from "@/lib/google";
+
+const DEFAULT_SERVICES: CalendarService[] = [{ name: "Atendimento padrão", minutes: 60 }];
+
+const DEFAULT_WORK_HOURS: CalendarWorkHours = {
+  monday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+  tuesday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+  wednesday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+  thursday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+  friday: ["09:00", "10:00", "11:00", "14:00", "15:00"],
+  saturday: [],
+  sunday: [],
+};
+
+const DEFAULT_PREPAYMENT = {
+  requiresPrepayment: false,
+  prepaymentMode: "manual" as const,
+  prepaymentAmountCents: 0,
+  prepaymentCurrency: "brl",
+  manualPixKey: "",
+  manualInstructions: "",
+};
+
+function sanitizeServices(services: CalendarService[] | undefined | null): CalendarService[] {
+  if (!Array.isArray(services) || services.length === 0) {
+    return DEFAULT_SERVICES.map((service) => ({ ...service }));
+  }
+  const cleaned = services
+    .map((service) => {
+      const name = typeof service?.name === "string" ? service.name.trim() : "";
+      const minutes = typeof service?.minutes === "number" ? service.minutes : Number(service?.minutes ?? 0);
+      if (!name || !Number.isFinite(minutes) || minutes <= 0) {
+        return null;
+      }
+      return { name, minutes: Math.min(8 * 60, Math.max(5, Math.round(minutes))) };
+    })
+    .filter((value): value is CalendarService => value !== null);
+
+  return cleaned.length ? cleaned : DEFAULT_SERVICES.map((service) => ({ ...service }));
+}
+
+function sanitizeWorkHours(workHours: CalendarWorkHours | undefined | null): CalendarWorkHours {
+  if (!workHours || typeof workHours !== "object") {
+    return { ...DEFAULT_WORK_HOURS };
+  }
+
+  const entries = Object.entries(workHours);
+  if (!entries.length) {
+    return { ...DEFAULT_WORK_HOURS };
+  }
+
+  const normalized: CalendarWorkHours = {};
+  for (const [day, slots] of entries) {
+    if (!Array.isArray(slots)) continue;
+    const cleaned = slots
+      .map((slot) => (typeof slot === "string" ? slot.trim() : ""))
+      .filter((slot) => /^\d{2}:\d{2}$/.test(slot));
+    normalized[day] = cleaned;
+  }
+
+  return Object.keys(normalized).length ? normalized : { ...DEFAULT_WORK_HOURS };
+}
+
+function sanitizePrepaymentConfig(value: Partial<LinkedCalendar> | undefined | null) {
+  if (!value) {
+    return { ...DEFAULT_PREPAYMENT };
+  }
+
+  const requiresPrepayment = Boolean(value.requiresPrepayment);
+  const prepaymentMode: "manual" | "stripe" = value.prepaymentMode === "stripe" ? "stripe" : "manual";
+  const amount = Number(value.prepaymentAmountCents);
+  const prepaymentAmountCents = Number.isFinite(amount) ? Math.max(0, Math.round(amount)) : DEFAULT_PREPAYMENT.prepaymentAmountCents;
+  const currency = typeof value.prepaymentCurrency === "string" && value.prepaymentCurrency.trim()
+    ? value.prepaymentCurrency.trim().toLowerCase()
+    : DEFAULT_PREPAYMENT.prepaymentCurrency;
+  const manualPixKey = typeof value.manualPixKey === "string" ? value.manualPixKey.trim() : DEFAULT_PREPAYMENT.manualPixKey;
+  const manualInstructions = typeof value.manualInstructions === "string"
+    ? value.manualInstructions.trim()
+    : DEFAULT_PREPAYMENT.manualInstructions;
+
+  return {
+    requiresPrepayment,
+    prepaymentMode,
+    prepaymentAmountCents,
+    prepaymentCurrency: currency,
+    manualPixKey,
+    manualInstructions,
+  };
+}
 
 export async function GET(req: Request) {
   const auth = await authenticateRequest(req);
@@ -16,11 +104,40 @@ export async function GET(req: Request) {
 }
 
 type Body =
-  | { action: "link"; calendar: { id: string; summary: string; description: string; whatsappNumber: string } }
+  | {
+      action: "link";
+      calendar: {
+        id: string;
+        summary: string;
+        description: string;
+        whatsappNumber: string;
+        services?: CalendarService[];
+        workHours?: CalendarWorkHours;
+        requiresPrepayment?: boolean;
+        prepaymentMode?: "manual" | "stripe";
+        prepaymentAmountCents?: number;
+        prepaymentCurrency?: string;
+        manualPixKey?: string;
+        manualInstructions?: string;
+      };
+    }
   | { action: "unlink"; id: string }
   | { action: "unlinkAll" }
   | { action: "setActive"; id: string }
-  | { action: "updateCalendar"; id: string; description: string; whatsappNumber: string }; // Nova ação
+  | {
+      action: "updateCalendar";
+      id: string;
+      description?: string;
+      whatsappNumber?: string;
+      services?: CalendarService[];
+      workHours?: CalendarWorkHours;
+      requiresPrepayment?: boolean;
+      prepaymentMode?: "manual" | "stripe";
+      prepaymentAmountCents?: number;
+      prepaymentCurrency?: string;
+      manualPixKey?: string;
+      manualInstructions?: string;
+    };
 
 export async function POST(req: Request) {
   const auth = await authenticateRequest(req);
@@ -43,7 +160,20 @@ export async function POST(req: Request) {
   // pois o conceito de Professional foi removido.
 
   if (body.action === "link") {
-    const { id, summary, description, whatsappNumber } = body.calendar ?? { id: "", summary: "", description: "", whatsappNumber: "" };
+    const {
+      id,
+      summary,
+      description,
+      whatsappNumber,
+      services,
+      workHours,
+      requiresPrepayment,
+      prepaymentMode,
+      prepaymentAmountCents,
+      prepaymentCurrency,
+      manualPixKey,
+      manualInstructions,
+    } = body.calendar ?? { id: "", summary: "", description: "", whatsappNumber: "" };
     if (!id || !summary || !description || !whatsappNumber) {
       return NextResponse.json({ error: "Informe id, summary, description e whatsappNumber do calendário" }, { status: 400 });
     }
@@ -52,10 +182,27 @@ export async function POST(req: Request) {
     if (existsIdx !== -1) {
       // Já vinculado: apenas atualiza os detalhes e define como ativo (sem contar como troca se já era ativo)
       const alreadyActive = account.activeCalendarId === id;
+      const prepaymentConfig = sanitizePrepaymentConfig({
+        requiresPrepayment,
+        prepaymentMode,
+        prepaymentAmountCents,
+        prepaymentCurrency,
+        manualPixKey,
+        manualInstructions,
+      });
+
       const updatedCalendar: LinkedCalendar = {
         ...account.linkedCalendars[existsIdx],
         description,
         whatsappNumber,
+        services: sanitizeServices(services ?? account.linkedCalendars[existsIdx]?.services),
+        workHours: sanitizeWorkHours(workHours ?? account.linkedCalendars[existsIdx]?.workHours),
+        requiresPrepayment: prepaymentConfig.requiresPrepayment,
+        prepaymentMode: prepaymentConfig.prepaymentMode,
+        prepaymentAmountCents: prepaymentConfig.prepaymentAmountCents,
+        prepaymentCurrency: prepaymentConfig.prepaymentCurrency,
+        manualPixKey: prepaymentConfig.manualPixKey,
+        manualInstructions: prepaymentConfig.manualInstructions,
       };
       const nextLinkedCalendars = [...account.linkedCalendars];
       nextLinkedCalendars[existsIdx] = updatedCalendar;
@@ -105,6 +252,15 @@ export async function POST(req: Request) {
       slug = `${base}-${Math.random().toString(36).slice(2, 6)}`.slice(0, 32);
     }
 
+    const prepaymentConfig = sanitizePrepaymentConfig({
+      requiresPrepayment,
+      prepaymentMode,
+      prepaymentAmountCents,
+      prepaymentCurrency,
+      manualPixKey,
+      manualInstructions,
+    });
+
     const newLinkedCalendar: LinkedCalendar = {
       id,
       summary,
@@ -113,6 +269,14 @@ export async function POST(req: Request) {
       description,
       whatsappNumber,
       active: true, // Nova agenda é ativa por padrão
+      services: sanitizeServices(services),
+      workHours: sanitizeWorkHours(workHours),
+      requiresPrepayment: prepaymentConfig.requiresPrepayment,
+      prepaymentMode: prepaymentConfig.prepaymentMode,
+      prepaymentAmountCents: prepaymentConfig.prepaymentAmountCents,
+      prepaymentCurrency: prepaymentConfig.prepaymentCurrency,
+      manualPixKey: prepaymentConfig.manualPixKey,
+      manualInstructions: prepaymentConfig.manualInstructions,
     };
 
     const nextLinkedCalendars = [...account.linkedCalendars, newLinkedCalendar];
@@ -176,19 +340,49 @@ export async function POST(req: Request) {
   }
 
   if (body.action === "updateCalendar") {
-    const { id, description, whatsappNumber } = body;
-    if (!id || !description || !whatsappNumber) {
-      return NextResponse.json({ error: "Informe id, description e whatsappNumber" }, { status: 400 });
+    const {
+      id,
+      description,
+      whatsappNumber,
+      services,
+      workHours,
+      requiresPrepayment,
+      prepaymentMode,
+      prepaymentAmountCents,
+      prepaymentCurrency,
+      manualPixKey,
+      manualInstructions,
+    } = body;
+    if (!id) {
+      return NextResponse.json({ error: "Informe id" }, { status: 400 });
     }
     const calendarIndex = account.linkedCalendars.findIndex((c) => c.id === id);
     if (calendarIndex === -1) {
       return NextResponse.json({ error: "Agenda não encontrada para atualização" }, { status: 404 });
     }
 
+    const current = account.linkedCalendars[calendarIndex];
+    const prepaymentConfig = sanitizePrepaymentConfig({
+      requiresPrepayment,
+      prepaymentMode,
+      prepaymentAmountCents,
+      prepaymentCurrency,
+      manualPixKey,
+      manualInstructions,
+    });
     const updatedCalendar: LinkedCalendar = {
-      ...account.linkedCalendars[calendarIndex],
-      description,
-      whatsappNumber,
+      ...current,
+      description: typeof description === "string" && description.trim() ? description.trim() : current.description,
+      whatsappNumber:
+        typeof whatsappNumber === "string" && whatsappNumber.trim() ? whatsappNumber.trim() : current.whatsappNumber,
+      services: services ? sanitizeServices(services) : current.services ?? sanitizeServices(undefined),
+      workHours: workHours ? sanitizeWorkHours(workHours) : current.workHours ?? sanitizeWorkHours(undefined),
+      requiresPrepayment: prepaymentConfig.requiresPrepayment,
+      prepaymentMode: prepaymentConfig.prepaymentMode,
+      prepaymentAmountCents: prepaymentConfig.prepaymentAmountCents,
+      prepaymentCurrency: prepaymentConfig.prepaymentCurrency,
+      manualPixKey: prepaymentConfig.manualPixKey,
+      manualInstructions: prepaymentConfig.manualInstructions,
     };
     const nextLinkedCalendars = [...account.linkedCalendars];
     nextLinkedCalendars[calendarIndex] = updatedCalendar;
@@ -204,4 +398,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ error: "Ação inválida" }, { status: 400 });
 }
-

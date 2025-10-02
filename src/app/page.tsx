@@ -119,15 +119,15 @@ export default function LandingWhatsApp() {
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  FAQ em movimento
-                </div>
-                <button
+               <button
                   type="button"
                   onClick={scrollToFaqSection}
                   className="text-emerald-300 hover:text-emerald-200"
                 >
-                  Abrir FAQ completo
+                  Dúvidas?
                 </button>
+                </div>
+               
               </div>
 
               <div className="mt-4 space-y-4">
@@ -137,10 +137,6 @@ export default function LandingWhatsApp() {
                     className="mx-auto"
                   />
                 </div>
-
-                <p className="text-[11px] text-center text-slate-500">
-                  Rolagem automática suave — interaja a qualquer momento para controlar.
-                </p>
               </div>
             </div>
           </div>

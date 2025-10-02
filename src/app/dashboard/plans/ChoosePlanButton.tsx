@@ -26,8 +26,8 @@ export default function ChoosePlanButton({ planId, isCurrent }: Props) {
         throw new Error(j?.error || `Erro ${r.status}`);
       }
       setDone(true);
-      // leva o usuário para a agenda para conectar Google
-      window.location.href = "/dashboard/minha-agenda";
+      // leva o usuário para a agenda dentro do dashboard unificado
+      window.location.href = "/dashboard?tab=agenda";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao ativar plano");
     } finally {
@@ -59,10 +59,9 @@ export default function ChoosePlanButton({ planId, isCurrent }: Props) {
             : "bg-white/10 text-slate-200 ring-1 ring-white/15 hover:bg-white/15"
         } disabled:opacity-60`}
       >
-        {busy ? "Ativando..." : "Ativar agora"}
+        {busy ? "Salvando..." : "Escolher plano"}
       </button>
       {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
     </div>
   );
 }
-

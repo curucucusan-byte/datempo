@@ -8,15 +8,35 @@ import { ensureAccount } from "@/lib/account";
 import { getDb } from "@/lib/firebaseAdmin";
 // import type { Professional } from "@/lib/professionals"; // Removido
 
+const DEFAULT_SERVICES = [{ name: "Atendimento padrão", minutes: 60 }];
+const DEFAULT_WORK_HOURS = {
+  monday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+  tuesday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+  wednesday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+  thursday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+  friday: ["09:00", "10:00", "11:00", "14:00", "15:00"],
+  saturday: [],
+  sunday: [],
+};
+
+const DEFAULT_PREPAYMENT = {
+  requiresPrepayment: false,
+  prepaymentMode: "manual" as const,
+  prepaymentAmountCents: 0,
+  prepaymentCurrency: "brl",
+  manualPixKey: "",
+  manualInstructions: "",
+};
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const error = url.searchParams.get("error");
   if (error) {
-    return NextResponse.redirect(`/dashboard/minha-agenda?google_error=${encodeURIComponent(error)}`);
+    return NextResponse.redirect(`/dashboard?tab=agenda&google_error=${encodeURIComponent(error)}`);
   }
   if (!code) {
-    return NextResponse.redirect(`/dashboard/minha-agenda?google_error=missing_code`);
+    return NextResponse.redirect(`/dashboard?tab=agenda&google_error=missing_code`);
   }
 
   const user = await getAuthenticatedUser();
@@ -60,6 +80,14 @@ export async function GET(req: Request) {
           description: `Agenda de ${primary.summary}`, // Descrição padrão
           whatsappNumber: process.env.OWNER_DEFAULT_PHONE || "", // Número de WhatsApp padrão
           active: true,
+          services: DEFAULT_SERVICES,
+          workHours: DEFAULT_WORK_HOURS,
+          requiresPrepayment: DEFAULT_PREPAYMENT.requiresPrepayment,
+          prepaymentMode: DEFAULT_PREPAYMENT.prepaymentMode,
+          prepaymentAmountCents: DEFAULT_PREPAYMENT.prepaymentAmountCents,
+          prepaymentCurrency: DEFAULT_PREPAYMENT.prepaymentCurrency,
+          manualPixKey: DEFAULT_PREPAYMENT.manualPixKey,
+          manualInstructions: DEFAULT_PREPAYMENT.manualInstructions,
         };
 
         await db.collection("accounts").doc(user.uid).set(
@@ -74,10 +102,9 @@ export async function GET(req: Request) {
     } catch {
       // best-effort; se falhar, a tela permitirá vincular manualmente
     }
-    return NextResponse.redirect(`/dashboard/minha-agenda?google_connected=1`);
+    return NextResponse.redirect(`/dashboard?tab=agenda&google_connected=1`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.redirect(`/dashboard/minha-agenda?google_error=${encodeURIComponent(message)}`);
+    return NextResponse.redirect(`/dashboard?tab=agenda&google_error=${encodeURIComponent(message)}`);
   }
 }
-

@@ -9,11 +9,88 @@ import { rateLimit } from "@/lib/ratelimit";
 import { ensureAccount, getAccount, isAccountActive } from "@/lib/account";
 import { getLinkedCalendarBySlug, createGoogleCalendarEvent } from "@/lib/google"; // Importar createGoogleCalendarEvent
 
+const DEFAULT_TIME_ZONE = process.env.DEFAULT_CALENDAR_TIMEZONE || "America/Sao_Paulo";
+
+function formatCurrency(amountCents: number, currency: string) {
+  const normalized = currency?.toUpperCase() || "BRL";
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: normalized }).format(amountCents / 100);
+}
+
+function isValidTimeZone(tz: string | undefined): tz is string {
+  if (!tz) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getTimeZoneOffset(date: Date, timeZone: string) {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  const parts = dtf.formatToParts(date);
+  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  const year = Number(lookup.year);
+  const month = Number(lookup.month);
+  const day = Number(lookup.day);
+  const hour = Number(lookup.hour);
+  const minute = Number(lookup.minute);
+  const second = Number(lookup.second);
+
+  const inTimeZone = Date.UTC(year, month - 1, day, hour, minute, second);
+  return inTimeZone - date.getTime();
+}
+
+function parseFormDateTime(value: string, timeZone: string) {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const [datePart, timePart] = value.split("T");
+  if (!datePart || !timePart) return null;
+
+  const [yearStr, monthStr, dayStr] = datePart.split("-");
+  const [hourStr, minuteStr] = timePart.split(":");
+
+  const baseUtc = Date.UTC(
+    Number(yearStr),
+    Number(monthStr) - 1,
+    Number(dayStr),
+    Number(hourStr),
+    Number(minuteStr),
+    0,
+  );
+
+  const baseDate = new Date(baseUtc);
+  const offset = getTimeZoneOffset(baseDate, timeZone);
+  return new Date(baseUtc - offset);
+}
+
+function clampDurationMinutes(value: unknown, fallback: number) {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.min(8 * 60, Math.max(5, Math.round(num)));
+}
+
 type Body = {
   slug: string;
   customerName: string;
   customerPhone: string;
   datetime: string;
+  service?: string;
+  durationMinutes?: number;
+  timezone?: string;
 };
 
 function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
@@ -44,9 +121,10 @@ export async function POST(req: Request) {
     }
 
     // Verifica se a conta do proprietário da agenda está ativa
+    let ownerAccount: Awaited<ReturnType<typeof ensureAccount>> | null = null;
     if (linkedCalendar.ownerUid) {
-      const account = await ensureAccount(linkedCalendar.ownerUid, null);
-      if (!isAccountActive(account)) {
+      ownerAccount = await ensureAccount(linkedCalendar.ownerUid, null);
+      if (!isAccountActive(ownerAccount)) {
         return NextResponse.json(
           {
             error:
@@ -64,13 +142,41 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "WhatsApp inválido. Use +55DDDNÚMERO (ex.: +5553999999999)." }, { status: 400 });
     }
 
-    const minutes = 60;
+    const serviceName = (body.service ?? "").trim();
+    const serviceLabel = serviceName || "Atendimento";
+    const minutes = clampDurationMinutes(body.durationMinutes, 60);
+    const timeZone = isValidTimeZone(body.timezone) ? body.timezone : DEFAULT_TIME_ZONE;
 
-    const start = new Date(body.datetime);
-    if (Number.isNaN(start.getTime())) {
+    const start = parseFormDateTime(body.datetime, timeZone);
+    if (!start || Number.isNaN(start.getTime())) {
       return NextResponse.json({ error: "Data/hora inválida." }, { status: 400 });
     }
     const end = new Date(start.getTime() + minutes * 60 * 1000);
+
+    if (!linkedCalendar.ownerUid) {
+      return NextResponse.json(
+        {
+          error: "Agenda sem proprietário vinculado. Refaça a conexão com o Google no painel antes de aceitar agendamentos.",
+        },
+        { status: 500 }
+      );
+    }
+
+    const requiresPrepayment = Boolean(
+      linkedCalendar.requiresPrepayment && (linkedCalendar.prepaymentAmountCents ?? 0) > 0,
+    );
+    const prepaymentMode = linkedCalendar.prepaymentMode === "stripe" ? "stripe" : "manual";
+    const prepaymentAmountCents = linkedCalendar.prepaymentAmountCents ?? 0;
+    const prepaymentCurrency = linkedCalendar.prepaymentCurrency ?? "brl";
+    const prepaymentPixKey = linkedCalendar.manualPixKey ?? "";
+    const prepaymentManualInstructions = linkedCalendar.manualInstructions ?? "";
+
+    if (requiresPrepayment && prepaymentMode === "stripe") {
+      return NextResponse.json(
+        { error: "Pré-pagamento via cartão ainda não está disponível para agendamentos." },
+        { status: 501 },
+      );
+    }
 
     // ---------- conflito ----------
     const list = await loadAppointments();
@@ -86,13 +192,23 @@ export async function POST(req: Request) {
     }
 
     // ---------- Criar evento no Google Calendar ----------
-    const eventSummary = `Agendamento: ${body.customerName}`;
-    const eventDescription = `Cliente: ${body.customerName}\nWhatsApp: ${body.customerPhone}\nAgenda: ${linkedCalendar.description || linkedCalendar.summary}`;
-    const attendees = [{ email: linkedCalendar.ownerUid }]; // Adiciona o dono da agenda como participante
+    const eventSummary = `${serviceLabel} — ${body.customerName}`;
+    const eventDescription = [
+      `Cliente: ${body.customerName}`,
+      `Serviço: ${serviceLabel}`,
+      `WhatsApp: ${body.customerPhone}`,
+      `Agenda: ${linkedCalendar.description || linkedCalendar.summary}`,
+      linkedCalendar.slug
+        ? `Link público: ${(process.env.APP_BASE_URL || "").replace(/\/$/, "")}/agenda/${linkedCalendar.slug}`
+        : "",
+      requiresPrepayment
+        ? `Pagamento: ${formatCurrency(prepaymentAmountCents, prepaymentCurrency)} — pendente`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-    // Se o cliente forneceu um email (assumindo que o WhatsApp pode ser um email para o Google Calendar)
-    // ou se quisermos adicionar o cliente como participante via email, precisaríamos de um campo de email no formulário.
-    // Por enquanto, vamos adicionar o dono da agenda como participante.
+    const attendees = ownerAccount?.email ? [{ email: ownerAccount.email }] : [];
 
     await createGoogleCalendarEvent(
       linkedCalendar.ownerUid,
@@ -101,19 +217,40 @@ export async function POST(req: Request) {
       eventDescription,
       start,
       end,
-      // Se o cliente tiver um email, pode ser adicionado aqui:
-      // [{ email: body.customerEmail }, { email: linkedCalendar.ownerUid }]
+      attendees,
+      timeZone,
     );
 
     // ---------- mensagens ----------
-    const humanDate = start.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+    const humanDate = start.toLocaleString("pt-BR", {
+      dateStyle: "short",
+      timeStyle: "short",
+      timeZone,
+    });
 
-    const confirmMsg =
-      `✅ *ZapAgenda* — Agendamento confirmado!\n` +
-      `Agenda: *${linkedCalendar.description || linkedCalendar.summary}*\n` +
-      `Cliente: *${body.customerName}*\n` +
-      `Data/Hora: *${humanDate}*\n\n` +
-      `Você receberá lembretes automáticos pelo WhatsApp se a agenda habilitou a função.`;
+    const paymentAmountLocalized = formatCurrency(prepaymentAmountCents, prepaymentCurrency);
+    const paymentInstructionsText = requiresPrepayment
+      ? [
+          `Valor: ${paymentAmountLocalized}.`,
+          prepaymentPixKey ? `Chave Pix: ${prepaymentPixKey}.` : "",
+          prepaymentManualInstructions,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      : null;
+
+    const confirmMsgLines = [
+      `✅ *ZapAgenda* — Agendamento registrado!`,
+      `Agenda: *${linkedCalendar.description || linkedCalendar.summary}*`,
+      `Cliente: *${body.customerName}*`,
+      `Serviço: *${serviceLabel}*`,
+      `Data/Hora: *${humanDate}*`,
+    ];
+    if (requiresPrepayment && paymentInstructionsText) {
+      confirmMsgLines.push("\n🔔 *Pagamento necessário antes da confirmação final.*", paymentInstructionsText.trim());
+    }
+    confirmMsgLines.push("\nVocê receberá lembretes automáticos pelo WhatsApp se a agenda habilitou a função.");
+    const confirmMsg = confirmMsgLines.join("\n");
 
     await sendWhats({ to: phone, message: confirmMsg });
 
@@ -134,7 +271,9 @@ export async function POST(req: Request) {
         message:
           `🧾 Novo agendamento — ${linkedCalendar.description || linkedCalendar.summary}\n` +
           `Cliente: ${body.customerName}\n` +
+          `Serviço: ${serviceLabel}\n` +
           `Quando: ${humanDate}\n` +
+          (requiresPrepayment ? `Pagamento: ${paymentAmountLocalized} (${prepaymentMode === "manual" ? "manual" : "online"})\n` : "") +
           `Contato do cliente: ${phone}` +
           trialLine,
       });
@@ -146,10 +285,17 @@ export async function POST(req: Request) {
       slug: body.slug,
       customerName: body.customerName,
       customerPhone: phone,
+      service: serviceLabel,
       startISO: start.toISOString(),
       endISO: end.toISOString(),
       ownerUid: linkedCalendar.ownerUid ?? null,
       createdAt: new Date().toISOString(),
+      paymentStatus: requiresPrepayment ? "pending" : "not_required",
+      paymentMode: requiresPrepayment ? prepaymentMode : null,
+      paymentAmountCents: requiresPrepayment ? prepaymentAmountCents : null,
+      paymentCurrency: requiresPrepayment ? prepaymentCurrency : null,
+      paymentReference: null,
+      paymentInstructions: paymentInstructionsText,
     };
 
     await addAppointment(appt);
@@ -164,7 +310,21 @@ export async function POST(req: Request) {
       id: appt.id,
       when: start.toISOString(),
       minutes,
+      service: serviceLabel,
+      timeZone,
       ics: icsUrl,
+      payment: requiresPrepayment
+        ? {
+            status: "pending" as const,
+            mode: prepaymentMode,
+            amountCents: prepaymentAmountCents,
+            currency: prepaymentCurrency,
+            pixKey: prepaymentPixKey,
+            instructions: paymentInstructionsText,
+          }
+        : {
+            status: "not_required" as const,
+          },
     });
   } catch (err: unknown) {
     console.error("appointment error:", err);
@@ -172,4 +332,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

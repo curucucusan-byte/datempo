@@ -9,12 +9,17 @@ import Link from "next/link";
 import AppointmentList from "./AppointmentList";
 import LogoutButton from "./LogoutButton";
 import ReminderSettings from "./ReminderSettings";
+import CalendarsCard from "./minha-agenda/CalendarsCard";
 
 export const metadata = {
   title: "Dashboard — ZapAgenda",
 };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const user = await getAuthenticatedUser();
   if (!user) {
     redirect("/login");
@@ -36,6 +41,8 @@ export default async function DashboardPage() {
 
   const planInactive = account.status === "canceled" || account.plan === "inactive";
 
+  const activeTab = (Array.isArray(searchParams?.tab) ? searchParams?.tab[0] : searchParams?.tab) || "resumo";
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8">
@@ -48,11 +55,11 @@ export default async function DashboardPage() {
           </p>
           {trialWarning && (
             <p className="text-xs text-emerald-300 mt-1">
-              Teste sem custo: {trialWarning.daysLeft} dia(s) restantes (até {trialWarning.ends.toLocaleDateString("pt-BR")}).
+              Seu teste termina em {trialWarning.daysLeft} dia(s) (até {trialWarning.ends.toLocaleDateString("pt-BR")}).
             </p>
           )}
           <p className="text-sm text-slate-400 mt-1">
-            Para liberar sincronização com Google Agenda, finalize a conexão OAuth quando solicitado.
+            Conecte sua conta do Google para manter os horários atualizados e enviar confirmações automáticas pelo WhatsApp.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -61,12 +68,6 @@ export default async function DashboardPage() {
             className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/15 hover:bg-white/15"
           >
             Ver planos
-          </Link>
-          <Link
-            href="/dashboard/minha-agenda"
-            className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/15 hover:bg-white/15"
-          >
-            Minha agenda
           </Link>
           <LogoutButton />
         </div>
@@ -77,12 +78,12 @@ export default async function DashboardPage() {
           <div className={`mb-6 rounded-3xl border px-6 py-4 text-sm ${planInactive ? "border-red-400/40 bg-red-900/30 text-red-100" : "border-emerald-400/40 bg-emerald-900/20 text-emerald-100"}`}>
             {planInactive ? (
               <>
-                Seu plano está inativo. Acesse <Link href="/dashboard/plans" className="underline">Planos</Link> para reativar e liberar todos os recursos.
+                Seu plano está inativo no momento. Veja os <Link href="/dashboard/plans" className="underline">planos</Link> para reativar quando quiser.
               </>
             ) : (
               trialWarning && (
                 <>
-                  Período de teste termina em {trialWarning.daysLeft} dia(s) ({trialWarning.ends.toLocaleDateString("pt-BR")}). Selecione um plano para manter o serviço ativo.
+                  Seu teste termina em {trialWarning.daysLeft} dia(s) ({trialWarning.ends.toLocaleDateString("pt-BR")}). Escolha um plano para seguir usando.
                 </>
               )
             )}
@@ -91,19 +92,41 @@ export default async function DashboardPage() {
       )}
 
       <main className="mx-auto max-w-6xl px-6 pb-16 space-y-6">
-        <ReminderSettings
-          initialEnabled={reminders.enabled}
-          initialWindowMinutes={reminders.windowMinutes}
-          canEdit={accountActive && account.plan === "pro"}
-          planLabel={planDetails?.label ?? "Inativo"}
-          planId={account.plan}
-          availablePlanLabel={ACTIVE_PLANS.pro.label}
-        />
-
-        <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6">
-          <h2 className="text-lg font-semibold mb-4">Agendamentos</h2>
-          <AppointmentList />
+        {/* Tabs */}
+        <div className="flex gap-2 rounded-2xl bg-white/5 p-1 text-sm w-fit">
+          <Link
+            href="/dashboard?tab=resumo"
+            className={`rounded-xl px-4 py-2 ${activeTab === "resumo" ? "bg-white/10 text-white" : "text-slate-300 hover:text-white"}`}
+          >
+            Resumo
+          </Link>
+          <Link
+            href="/dashboard?tab=agenda"
+            className={`rounded-xl px-4 py-2 ${activeTab === "agenda" ? "bg-white/10 text-white" : "text-slate-300 hover:text-white"}`}
+          >
+            Minha agenda
+          </Link>
         </div>
+
+        {activeTab === "agenda" ? (
+          <CalendarsCard />
+        ) : (
+          <>
+            <ReminderSettings
+              initialEnabled={reminders.enabled}
+              initialWindowMinutes={reminders.windowMinutes}
+              canEdit={accountActive && account.plan === "pro"}
+              planLabel={planDetails?.label ?? "Inativo"}
+              planId={account.plan}
+              availablePlanLabel={ACTIVE_PLANS.pro.label}
+            />
+
+            <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6">
+              <h2 className="text-lg font-semibold mb-4">Agendamentos</h2>
+              <AppointmentList />
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

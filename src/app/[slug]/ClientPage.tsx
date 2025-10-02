@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { maskBR, normalizeE164BR } from "@/lib/phone";
 
-type Professional = {
+type CalendarProfile = {
   slug: string;
   name: string;
-  phone: string;
+  description?: string;
+  phone?: string | null;
   services: { name: string; minutes: number }[];
-  workHours: Record<string, string[]>;
+  workHours?: Record<string, string[]> | null;
 };
 
 type CreateResp = {
@@ -18,6 +19,8 @@ type CreateResp = {
   when?: string;
   minutes?: number;
   ics?: string; // link para baixar/abrir calendário
+  service?: string;
+  timeZone?: string;
 };
 
 type AvResp = {
@@ -52,8 +55,8 @@ function combineLocalDateTime(date: string, time: string) {
 }
 
 export default function ClientPage({ slug }: ClientPageProps) {
-  // dados do profissional
-  const [prof, setProf] = useState<Professional | null>(null);
+  // dados da agenda pública
+  const [profile, setProfile] = useState<CalendarProfile | null>(null);
 
   // form
   const [customerName, setCustomerName] = useState("");
@@ -80,12 +83,18 @@ export default function ClientPage({ slug }: ClientPageProps) {
     (async () => {
       try {
         const r = await fetch(`/api/professional?slug=${encodeURIComponent(slug)}`);
-        const j = (await r.json()) as { ok?: boolean; professional?: Professional; error?: string };
+        const j = (await r.json()) as { ok?: boolean; professional?: CalendarProfile; error?: string };
         if (!cancelled && j.ok && j.professional) {
-          setProf(j.professional);
-          // define serviço padrão
-          const first = j.professional.services?.[0]?.name ?? "";
-          setService((s) => (s ? s : first));
+          const services = j.professional.services?.length
+            ? j.professional.services
+            : [{ name: "Atendimento padrão", minutes: 60 }];
+          setProfile({
+            ...j.professional,
+            services,
+            workHours: j.professional.workHours ?? null,
+          });
+          const first = services[0]?.name ?? "";
+          setService((current) => (current ? current : first));
           setDate((current) => (current ? current : formatDateForInput(new Date())));
         }
       } catch {
@@ -98,12 +107,12 @@ export default function ClientPage({ slug }: ClientPageProps) {
   }, [slug]);
 
   useEffect(() => {
-    if (!prof?.services?.length) return;
-    const currentExists = prof.services.some((s) => s.name === service);
+    if (!profile?.services?.length) return;
+    const currentExists = profile.services.some((s) => s.name === service);
     if (!currentExists) {
-      setService(prof.services[0]!.name);
+      setService(profile.services[0]!.name);
     }
-  }, [prof, service]);
+  }, [profile, service]);
 
   // enviar agendamento
   async function onSubmit(e: React.FormEvent) {
@@ -160,6 +169,8 @@ export default function ClientPage({ slug }: ClientPageProps) {
           customerPhone: normalizedPhone,
           service,
           datetime: localDateTime,
+          durationMinutes: selMinutes,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
       const j = (await r.json()) as CreateResp;
@@ -201,14 +212,14 @@ export default function ClientPage({ slug }: ClientPageProps) {
 
   // duração exibida do serviço selecionado
   const selMinutes =
-    prof?.services?.find((s) => s.name === service)?.minutes ??
-    (prof?.services?.[0]?.minutes ?? 30);
+    profile?.services?.find((s) => s.name === service)?.minutes ??
+    (profile?.services?.[0]?.minutes ?? 30);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       <header className="mx-auto max-w-5xl px-6 py-6">
         <h1 className="text-2xl sm:text-3xl font-semibold">
-          {prof?.name ? `ZapAgenda — ${prof.name}` : "Carregando profissional..."}
+          {profile?.name ? `ZapAgenda — ${profile.name}` : "Carregando profissional..."}
         </h1>
         <p className="text-slate-300 mt-1">Agendamentos rápidos confirmados pelo WhatsApp em poucos cliques.</p>
         <div className="mt-2 text-xs text-emerald-300">
@@ -219,8 +230,8 @@ export default function ClientPage({ slug }: ClientPageProps) {
           <li>Evita overbooking: respeita compromissos já existentes no Google.</li>
           <li>Confirmações e lembretes por WhatsApp para reduzir faltas.</li>
         </ul>
-        {prof?.description && (
-          <p className="mt-2 text-sm text-slate-300/90">{prof.description}</p>
+        {profile?.description && (
+          <p className="mt-2 text-sm text-slate-300/90">{profile.description}</p>
         )}
       </header>
 
@@ -308,8 +319,8 @@ export default function ClientPage({ slug }: ClientPageProps) {
               aria-describedby={fieldErrors.service ? "service-error" : undefined}
               className="w-full rounded-xl bg-white/5 px-4 py-3 text-sm outline-none ring-1 ring-white/10"
             >
-              {prof?.services?.length ? (
-                prof.services.map((s) => (
+              {profile?.services?.length ? (
+                profile.services.map((s) => (
                   <option key={s.name} value={s.name}>
                     {s.name}
                   </option>
@@ -494,8 +505,19 @@ export default function ClientPage({ slug }: ClientPageProps) {
                 <p className="text-slate-300">
                   Data/Hora confirmada:{" "}
                   <span className="font-medium">
-                    {new Date(res.when).toLocaleString("pt-BR")}
+                    {new Date(res.when).toLocaleString("pt-BR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                      timeZone: res.timeZone,
+                    })}
                   </span>
+                </p>
+              )}
+
+              {res.service && (
+                <p className="text-slate-300">
+                  Serviço confirmado:{" "}
+                  <span className="font-medium">{res.service}</span>
                 </p>
               )}
 
@@ -505,7 +527,30 @@ export default function ClientPage({ slug }: ClientPageProps) {
                 </p>
               )}
 
-              {res.ics && (
+              {res.timeZone && (
+                <p className="text-xs text-slate-400">
+                  Horário exibido considerando o fuso: {res.timeZone}
+                </p>
+              )}
+
+              {res.payment?.status === "pending" && (
+                <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-xs text-emerald-100">
+                  <div className="font-semibold text-emerald-200">Pré-pagamento necessário</div>
+                  <p className="mt-1">
+                    Valor: {new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: res.payment.currency?.toUpperCase?.() ?? "BRL",
+                    }).format((res.payment.amountCents ?? 0) / 100)}
+                  </p>
+                  {res.payment.pixKey && <p>Chave Pix: {res.payment.pixKey}</p>}
+                  {res.payment.instructions && <p>{res.payment.instructions}</p>}
+                  <p className="mt-2 text-emerald-300">
+                    Após enviar o pagamento, aguarde a confirmação do profissional para finalizar o agendamento.
+                  </p>
+                </div>
+              )}
+
+              {res.ics && res.payment?.status !== "pending" && (
                 <a
                   href={res.ics}
                   className="inline-block mt-3 rounded-xl bg-white/10 px-4 py-2 text-sm ring-1 ring-white/15 hover:bg-white/15"

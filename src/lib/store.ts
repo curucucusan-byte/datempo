@@ -14,6 +14,12 @@ export type Appointment = {
   ownerUid?: string | null;
   createdAt: string;
   reminderSentAt?: string | null;
+  paymentStatus?: "not_required" | "pending" | "paid" | "failed";
+  paymentMode?: "manual" | "stripe" | null;
+  paymentAmountCents?: number | null;
+  paymentCurrency?: string | null;
+  paymentReference?: string | null;
+  paymentInstructions?: string | null;
 };
 
 const FIRESTORE_ENABLED = Boolean(

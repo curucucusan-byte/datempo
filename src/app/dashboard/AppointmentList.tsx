@@ -13,6 +13,10 @@ type Appointment = {
   ownerUid?: string | null;
   createdAt: string;
   reminderSentAt?: string | null;
+  paymentStatus?: "not_required" | "pending" | "paid" | "failed";
+  paymentMode?: "manual" | "stripe" | null;
+  paymentAmountCents?: number | null;
+  paymentCurrency?: string | null;
 };
 
 type ApiResponse = {
@@ -212,6 +216,7 @@ export default function AppointmentList() {
               <th className="px-4 py-3">Cliente</th>
               <th className="px-4 py-3">Serviço</th>
               <th className="px-4 py-3">Contato</th>
+              <th className="px-4 py-3">Pagamento</th>
               <th className="px-4 py-3">Criado em</th>
               <th className="px-4 py-3">Lembrete</th>
             </tr>
@@ -219,7 +224,7 @@ export default function AppointmentList() {
           <tbody>
             {filtered.length === 0 && !loading ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={8} className="px-4 py-6 text-center text-slate-400">
                   Nenhum agendamento encontrado.
                 </td>
               </tr>
@@ -231,6 +236,15 @@ export default function AppointmentList() {
                   <td className="px-4 py-3 text-slate-200">{apt.customerName}</td>
                   <td className="px-4 py-3 text-slate-300">{apt.service}</td>
                   <td className="px-4 py-3 text-slate-300">{apt.customerPhone}</td>
+                  <td className="px-4 py-3 text-slate-300">
+                    {apt.paymentStatus ? (
+                      <span className="rounded-full bg-white/10 px-2 py-1 text-xs text-slate-200">
+                        {apt.paymentStatus}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-slate-300">{formatDate(apt.createdAt)}</td>
                   <td className="px-4 py-3 text-slate-300">
                     {apt.reminderSentAt ? `Enviado ${formatDate(apt.reminderSentAt)}` : "Pendente"}

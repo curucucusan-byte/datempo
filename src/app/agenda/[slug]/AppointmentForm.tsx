@@ -20,6 +20,8 @@ type AppointmentResponse = {
   minutes?: number;
   ics?: string;
   error?: string;
+  service?: string;
+  timeZone?: string;
 };
 
 export default function AppointmentForm({ slug }: { slug: string }) {
@@ -30,7 +32,8 @@ export default function AppointmentForm({ slug }: { slug: string }) {
   const [customerPhone, setCustomerPhone] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [result, setResult] = useState<AppointmentResponse | null>(null);
+  const [slotMinutes, setSlotMinutes] = useState<number | null>(null);
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -47,6 +50,7 @@ export default function AppointmentForm({ slug }: { slug: string }) {
           throw new Error(data.error || "Erro ao carregar horários.");
         }
         setAvailableSlots(data.free);
+        setSlotMinutes(data.slotMinutes ?? null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro ao buscar disponibilidade.");
       } finally {
@@ -61,7 +65,7 @@ export default function AppointmentForm({ slug }: { slug: string }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(null);
+    setResult(null);
 
     if (!selectedDate || !selectedSlot || !customerName || !customerPhone) {
       setError("Por favor, preencha todos os campos.");
@@ -78,19 +82,22 @@ export default function AppointmentForm({ slug }: { slug: string }) {
           customerName,
           customerPhone,
           datetime: selectedSlot, // O slot já é um ISO string
+          durationMinutes: slotMinutes ?? undefined,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
       const data: AppointmentResponse = await res.json();
       if (!res.ok || !data.ok) {
         throw new Error(data.error || "Erro ao agendar.");
       }
-      setSuccess("Agendamento realizado com sucesso! Você receberá uma confirmação no WhatsApp.");
+      setResult(data);
       // Limpar formulário
       setSelectedDate("");
       setSelectedSlot("");
       setCustomerName("");
       setCustomerPhone("");
       setAvailableSlots([]);
+      setSlotMinutes(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao agendar.");
     } finally {
@@ -163,9 +170,6 @@ export default function AppointmentForm({ slug }: { slug: string }) {
         />
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
-      {success && <p className="text-emerald-400 text-sm">{success}</p>}
-
       <button
         type="submit"
         disabled={loading || !selectedSlot || !customerName || !customerPhone}
@@ -173,7 +177,35 @@ export default function AppointmentForm({ slug }: { slug: string }) {
       >
         {loading ? "Agendando..." : "Agendar Horário"}
       </button>
+
+      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {result?.ok && (
+        <div className="space-y-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-xs text-emerald-100">
+          <div className="font-semibold text-emerald-200">Agendamento registrado! Você receberá confirmação no WhatsApp.</div>
+          {result.when && (
+            <p>
+              Horário: {new Date(result.when).toLocaleString("pt-BR", {
+                dateStyle: "short",
+                timeStyle: "short",
+                timeZone: result.timeZone,
+              })}
+            </p>
+          )}
+          {result.service && <p>Serviço: {result.service}</p>}
+          {result.payment?.status === "pending" ? (
+            <div className="space-y-1">
+              <p>
+                Pagamento pendente: {new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: result.payment.currency?.toUpperCase?.() ?? "BRL",
+                }).format((result.payment.amountCents ?? 0) / 100)}
+              </p>
+              {result.payment.pixKey && <p>Chave Pix: {result.payment.pixKey}</p>}
+              {result.payment.instructions && <p>{result.payment.instructions}</p>}
+            </div>
+          ) : null}
+        </div>
+      )}
     </form>
   );
 }
-
