@@ -11,7 +11,7 @@
     "seed:professionals": "node scripts/seed-professionals.mjs"
   },
   "dependencies": {
-    "@stripe/react-stripe-js": "^2.9.0",
+    "@stripe/react-stripe-js": "^5.0.0",
     "@stripe/stripe-js": "^8.0.0",
     "@vercel/analytics": "^1.5.0",
     "dotenv": "^17.2.2",
@@ -21,7 +21,8 @@
     "next": "^15.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "stripe": "^19.0.0"
+    "stripe": "^19.0.0",
+    "typescript": "^5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -33,7 +34,6 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.13",
-    "typescript": "^5"
+    "tailwindcss": "^4.1.13"
   }
 }
