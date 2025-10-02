@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { ACTIVE_PLANS } from "@/lib/plans";
 import VerticalFAQCarousel from "@/components/VerticalFAQCarousel";
@@ -91,9 +90,33 @@ export default function LandingWhatsApp() {
             </h1>
             {/* Destaque da integração: logos maiores e peso igual */}
             <div className="mt-4 inline-flex items-center gap-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3">
-              <Image src="/logos/calender.webp" alt="Google Agenda" width={40} height={40} className="h-10 w-10" unoptimized priority />
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 48 48"
+                  className="h-7 w-7"
+                  aria-hidden="true"
+                >
+                  <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.826 31.676 29.317 35 24 35 16.82 35 11 29.18 11 22S16.82 9 24 9c4.02 0 7.66 1.52 10.44 4.01l5.66-5.66C35.9 3.59 30.27 1 24 1 11.85 1 2 10.85 2 23s9.85 22 22 22c12.15 0 22-9.85 22-22 0-1.47-.15-2.9-.389-4.917z"/>
+                  <path fill="#FF3D00" d="M6.306 14.691l6.571 4.814C14.757 16.064 19.04 13 24 13c4.02 0 7.66 1.52 10.44 4.01l5.66-5.66C35.9 3.59 30.27 1 24 1 15.317 1 7.91 5.69 4.053 12.69z"/>
+                  <path fill="#4CAF50" d="M24 45c5.232 0 10.02-2.003 13.627-5.273l-6.287-5.316C29.193 35.46 26.725 36 24 36c-5.29 0-9.787-3.37-11.396-8.065l-6.54 5.04C9.862 40.566 16.39 45 24 45z"/>
+                  <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-1.627 4.676-6.136 8-11.303 8-5.29 0-9.787-3.37-11.396-8.065l-6.54 5.04C9.862 40.566 16.39 45 24 45c12.15 0 22-9.85 22-22 0-1.47-.15-2.9-.389-4.917z"/>
+                </svg>
+              </span>
               <span className="text-sm font-medium text-emerald-200">Google Agenda + WhatsApp</span>
-              <Image src="/logos/whatsapp-green-filled.png" alt="WhatsApp" width={40} height={40} className="h-10 w-10" unoptimized />
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 48 48"
+                  className="h-6 w-6 text-white"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M24 4C13.526 4 5 12.178 5 22.417c0 4.694 1.889 8.973 4.992 12.143L8 43l8.662-2.832C18.61 41.127 21.243 41 24 41c10.474 0 19-8.178 19-18.583C43 12.178 34.474 4 24 4Zm0 33c-2.44 0-4.81-.59-6.916-1.71l-.495-.264-4.879 1.597 1.548-5.083-.323-.518C11.227 28.187 10 25.4 10 22.417 10 14.74 16.933 9 24 9s14 5.74 14 13.417C38 31.093 31.067 37 24 37Zm7.441-11.351c-.408-.204-2.415-1.189-2.79-1.323-.375-.136-.647-.204-.92.204-.273.409-1.052 1.324-1.288 1.597-.238.273-.476.307-.884.102-.409-.204-1.728-.633-3.293-2.018-1.218-1.085-2.04-2.423-2.277-2.831-.238-.409-.026-.631.179-.835.183-.183.409-.477.612-.715.204-.238.273-.409.409-.681.136-.273.068-.511-.034-.715-.102-.204-.92-2.22-1.26-3.041-.332-.798-.669-.688-.92-.703-.238-.015-.511-.019-.784-.019-.273 0-.716.102-1.09.511-.375.409-1.427 1.393-1.427 3.398 0 2.006 1.461 3.947 1.665 4.221.204.273 2.872 4.392 6.955 6.16.971.419 1.73.668 2.321.856.976.311 1.865.267 2.567.162.782-.117 2.415-.987 2.753-1.939.34-.952.34-1.767.238-1.939-.102-.171-.374-.273-.782-.477Z"
+                  />
+                </svg>
+              </span>
             </div>
             <p className="mt-4 text-slate-300">
               Link único para agendar. Sincroniza com o Google Agenda e confirma no WhatsApp. Simples e direto.
