@@ -91,16 +91,14 @@ export default function LandingWhatsApp() {
             </h1>
             {/* Destaque da integração: logos maiores e peso igual */}
             <div className="mt-4 inline-flex items-center gap-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                <Image
-                  src="/logos/calendar.png"
-                  alt="Google Agenda"
-                  width={32}
-                  height={32}
-                  className="h-7 w-7"
-                  priority
-                />
-              </span>
+              <Image
+                src="/logos/calendar.png"
+                alt="Google Agenda"
+                width={40}
+                height={40}
+                className="h-10 w-10"
+                priority
+              />
               <span className="text-sm font-medium text-emerald-200">Google Agenda + WhatsApp</span>
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366]">
                 <svg
