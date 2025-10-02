@@ -90,17 +90,23 @@ export default function LandingWhatsApp() {
             </h1>
             {/* Destaque da integração: logos maiores e peso igual */}
             <div className="mt-4 inline-flex items-center gap-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 48 48"
-                  className="h-7 w-7"
+                  className="h-7 w-7 text-[#4285F4]"
                   aria-hidden="true"
                 >
-                  <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.826 31.676 29.317 35 24 35 16.82 35 11 29.18 11 22S16.82 9 24 9c4.02 0 7.66 1.52 10.44 4.01l5.66-5.66C35.9 3.59 30.27 1 24 1 11.85 1 2 10.85 2 23s9.85 22 22 22c12.15 0 22-9.85 22-22 0-1.47-.15-2.9-.389-4.917z"/>
-                  <path fill="#FF3D00" d="M6.306 14.691l6.571 4.814C14.757 16.064 19.04 13 24 13c4.02 0 7.66 1.52 10.44 4.01l5.66-5.66C35.9 3.59 30.27 1 24 1 15.317 1 7.91 5.69 4.053 12.69z"/>
-                  <path fill="#4CAF50" d="M24 45c5.232 0 10.02-2.003 13.627-5.273l-6.287-5.316C29.193 35.46 26.725 36 24 36c-5.29 0-9.787-3.37-11.396-8.065l-6.54 5.04C9.862 40.566 16.39 45 24 45z"/>
-                  <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-1.627 4.676-6.136 8-11.303 8-5.29 0-9.787-3.37-11.396-8.065l-6.54 5.04C9.862 40.566 16.39 45 24 45c12.15 0 22-9.85 22-22 0-1.47-.15-2.9-.389-4.917z"/>
+                  <rect x="6" y="10" width="36" height="30" rx="6" fill="#E8F0FE" />
+                  <path
+                    d="M36 10v4a2 2 0 1 1-4 0v-4h-4v4a2 2 0 1 1-4 0v-4h-4v4a2 2 0 1 1-4 0v-4h-2a6 6 0 0 0-6 6v18a6 6 0 0 0 6 6h20a6 6 0 0 0 6-6V16a6 6 0 0 0-6-6h-2Z"
+                    fill="#4285F4"
+                  />
+                  <rect x="12" y="22" width="24" height="14" rx="2" fill="white" />
+                  <path
+                    d="M20 32h-2v-6h2l2.5 3 2.5-3h2v6h-2v-3.2l-2.3 3.2H24l-2.3-3.2V32Zm12 0h-6v-1.8l3.8-4.2H26v-1.8h6v1.8l-3.8 4.2H32V32Z"
+                    fill="#1A237E"
+                  />
                 </svg>
               </span>
               <span className="text-sm font-medium text-emerald-200">Google Agenda + WhatsApp</span>

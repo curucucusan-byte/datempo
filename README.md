@@ -8,17 +8,14 @@ Last updated: 2025-09-29 18:30
 
 ## Getting Started
 
-First, run the development server:
+First, run the development server (Yarn Classic only):
 
 ```bash
-npm run dev
-# or
+yarn install
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+
+> ⚠️ Utilizamos apenas Yarn 1 (`1.22.x`). Evite `npm`, `pnpm` ou `bun` para não quebrar o lockfile e o build em produção.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
