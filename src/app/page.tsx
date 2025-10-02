@@ -1,14 +1,55 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 import { ACTIVE_PLANS } from "@/lib/plans";
+import VerticalFAQCarousel from "@/components/VerticalFAQCarousel";
+
+const FAQ_ITEMS = [
+  {
+    q: "Precisa instalar app?",
+    a: "Não. Você compartilha um link ZapAgenda e o cliente conclui o agendamento direto no WhatsApp.",
+  },
+  {
+    q: "Como funciona com Google Agenda?",
+    a: "Basta autorizar com sua conta do Google. Sem a autorização, a sincronização pausa para evitar conflitos.",
+  },
+  {
+    q: "Posso cancelar quando quiser?",
+    a: "Sim. São planos mensais sem fidelidade. Você controla tudo pelo painel com apenas alguns cliques.",
+  },
+  {
+    q: "E os lembretes automáticos?",
+    a: "No plano Pro você ativa lembretes no WhatsApp, escolhe antecedência e decide se quer copiar o time.",
+  },
+  {
+    q: "Como proteger contra não comparecimento?",
+    a: "Ative o pré-pagamento direto no ZapAgenda: configure valores, Pix ou cartão e só confirma a reserva após o cliente pagar.",
+  },
+  {
+    q: "O cliente vê qual tela ao agendar?",
+    a: "Ele acessa um formulário limpo com nome, WhatsApp, serviço e horários livres — igual ao exemplo acima e ao demo na seção FAQ.",
+  },
+];
 
 // Landing minimalista para validar interesse no Micro‑SaaS: Agendamento via WhatsApp
 // Estilo: Tailwind (classes utilitárias), sem dependências externas.
 // Componente único, pronto para colar em app/page.tsx (App Router, Next.js 13+) ou pages/index.tsx (modelo antigo).
 
 export default function LandingWhatsApp() {
+  const faqPreviewItems = FAQ_ITEMS.map((faq) => (
+    <div key={faq.q} className="space-y-1">
+      <div className="font-semibold text-slate-200">{faq.q}</div>
+      <p className="text-slate-400 text-xs leading-relaxed">{faq.a}</p>
+    </div>
+  ));
+
+  const scrollToFaqSection = () => {
+    const faqSection = document.getElementById("faq");
+    faqSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       {/* NAVBAR */}
@@ -36,7 +77,7 @@ export default function LandingWhatsApp() {
             href="#pricing"
             className="rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-slate-950 hover:bg-emerald-400"
           >
-            Começar sem custo
+            Experimentar grátis
           </a>
         </div>
       </header>
@@ -46,11 +87,16 @@ export default function LandingWhatsApp() {
         <div className="grid lg:grid-cols-2 gap-10 items-center">
           <div>
             <h1 className="text-3xl sm:text-5xl font-semibold leading-tight">
-              Sua agenda automática no <span className="text-emerald-400">WhatsApp</span>.
+              Agendamentos com <span className="text-emerald-400">WhatsApp</span> + Google Agenda.
             </h1>
+            {/* Destaque da integração: logos maiores e peso igual */}
+            <div className="mt-4 inline-flex items-center gap-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3">
+              <Image src="/logos/calender.webp" alt="Google Agenda" width={40} height={40} className="h-10 w-10" />
+              <span className="text-sm font-medium text-emerald-200">Google Agenda + WhatsApp</span>
+              <Image src="/logos/whatsapp-green-filled.png" alt="WhatsApp" width={40} height={40} className="h-10 w-10" />
+            </div>
             <p className="mt-4 text-slate-300">
-              ZapAgenda centraliza agendamentos: compartilhe um link, obrigue a conexão com o Google Agenda para manter
-              os horários atualizados e automatize confirmações e lembretes pelo WhatsApp.
+              Link único para agendar. Sincroniza com o Google Agenda e confirma no WhatsApp. Simples e direto.
             </p>
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <a href="#pricing" className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-emerald-400">Ver planos</a>
@@ -63,35 +109,38 @@ export default function LandingWhatsApp() {
               </Link>
             </div>
             <p className="mt-4 text-xs text-slate-400">
-              3 dias sem custo em todos os planos. Plano ativo obrigatório após o período de teste.
+              3 dias para testar com tranquilidade. Depois, escolha o plano que fizer sentido para você.
             </p>
           </div>
 
           <div className="relative">
             <div className="absolute -inset-6 rounded-3xl bg-emerald-500/10 blur-2xl"/>
             <div className="relative rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <span className="h-2 w-2 rounded-full bg-emerald-400"/> demo
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  FAQ em movimento
+                </div>
+                <button
+                  type="button"
+                  onClick={scrollToFaqSection}
+                  className="text-emerald-300 hover:text-emerald-200"
+                >
+                  Abrir FAQ completo
+                </button>
               </div>
-              <div className="mt-4 space-y-3 text-sm">
-                <div className="rounded-xl border border-white/10 bg-slate-800/60 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">Link do seu negócio</div>
-                    <span className="text-xs text-slate-400">zapagenda.app/joaobarber</span>
-                  </div>
+
+              <div className="mt-4 space-y-4">
+                <div className="rounded-2xl border border-white/10 bg-slate-800/60 p-4">
+                  <VerticalFAQCarousel
+                    items={faqPreviewItems}
+                    className="mx-auto"
+                  />
                 </div>
-                <div className="rounded-xl border border-white/10 bg-slate-800/60 p-4">
-                  <div className="font-medium">Calendário básico</div>
-                  <p className="text-slate-300">Cliente escolhe dia/horário disponível. Bloqueio automático.</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-slate-800/60 p-4">
-                  <div className="font-medium">Confirmação no WhatsApp</div>
-                  <p className="text-slate-300">Mensagem com dados do agendamento enviada para você e para o cliente.</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-slate-800/60 p-4">
-                  <div className="font-medium">Sem dor de cabeça</div>
-                  <p className="text-slate-300">Nada de app pesado. Só um link. Planos simples e sem taxa oculta.</p>
-                </div>
+
+                <p className="text-[11px] text-center text-slate-500">
+                  Rolagem automática suave — interaja a qualquer momento para controlar.
+                </p>
               </div>
             </div>
           </div>
@@ -105,12 +154,12 @@ export default function LandingWhatsApp() {
 
         <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { t: "Google Agenda obrigatório", d: "O profissional conecta via OAuth e só então libera os horários para clientes." },
-            { t: "WhatsApp automático", d: "O cliente responde ao link e recebe confirmações e lembretes sem sair da conversa." },
-            { t: "Planos com limite de agendas", d: "Essencial: 1 agenda (troca diária). Pro: até 10 agendas sincronizadas." },
-            { t: "Lembretes configuráveis", d: "No plano Pro, ajuste se e quando o lembrete será enviado." },
-            { t: "Painel simples", d: "Gerencie serviços, horários e acompanhe agendamentos em tempo real." },
-            { t: "3 dias sem custo", d: "Ative em minutos e continue somente se fizer sentido." },
+            { t: "Integra Google + WhatsApp", d: "Conecte o Google Agenda (OAuth) e envie confirmações e lembretes pelo WhatsApp." },
+            { t: "Fluxo prático para o cliente", d: "Um link simples para escolher dia e horário. Sem atrito." },
+            { t: "Planos sob medida", d: "Essencial: 1 agenda (troca diária). Pro: até 10 agendas." },
+            { t: "Lembretes configuráveis", d: "No Pro, escolha se e quando o lembrete será enviado." },
+            { t: "Painel direto ao ponto", d: "Gerencie horários e acompanhe agendamentos em poucos cliques." },
+            { t: "Teste sem custo", d: "Ative em minutos e continue apenas se fizer sentido." },
           ].map((f) => (
             <div key={f.t} className="rounded-2xl border border-white/10 bg-slate-900/60 p-5">
               <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 ring-1 ring-emerald-400/30">
@@ -126,7 +175,7 @@ export default function LandingWhatsApp() {
       {/* PRICING */}
       <section id="pricing" className="mx-auto max-w-6xl px-6 py-12">
         <h2 className="text-2xl sm:text-3xl font-semibold">Planos simples</h2>
-        <p className="mt-2 text-slate-300">Preço baixo para validar. Sem pegadinha.</p>
+        <p className="mt-2 text-slate-300">Preço acessível e transparente, sem surpresas.</p>
 
         <div className="mt-8 grid sm:grid-cols-2 gap-6">
           {Object.values(ACTIVE_PLANS).map((plan) => (
@@ -153,7 +202,7 @@ export default function LandingWhatsApp() {
                 href="/login"
                 className={`mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold ${plan.id === "pro" ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400" : "ring-1 ring-white/15 hover:bg-white/10"}`}
               >
-                Começar sem custo
+                Experimentar grátis
               </Link>
             </div>
           ))}
@@ -174,12 +223,7 @@ export default function LandingWhatsApp() {
       <section id="faq" className="mx-auto max-w-6xl px-6 py-12">
         <h2 className="text-2xl sm:text-3xl font-semibold">Perguntas frequentes</h2>
         <div className="mt-6 grid gap-4">
-          {[
-            { q: "Precisa instalar app?", a: "Não. Você terá um link para compartilhar e o cliente finaliza a conversa no WhatsApp." },
-            { q: "Como funciona com Google Agenda?", a: "O profissional precisa autorizar via OAuth. Sem a permissão, o sistema bloqueia o uso para evitar conflitos." },
-            { q: "Posso cancelar quando quiser?", a: "Sim. Planos mensais, sem fidelidade. Ao cancelar, o acesso é suspenso." },
-            { q: "E os lembretes?", a: "No plano Pro você ativa lembretes automáticos e escolhe a antecedência diretamente no dashboard." },
-          ].map((faq) => (
+          {FAQ_ITEMS.map((faq) => (
             <div key={faq.q} className="rounded-2xl border border-white/10 bg-slate-900/60 p-5">
               <div className="font-medium">{faq.q}</div>
               <p className="mt-1 text-sm text-slate-300">{faq.a}</p>
