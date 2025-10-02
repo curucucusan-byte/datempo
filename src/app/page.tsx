@@ -93,7 +93,7 @@ export default function LandingWhatsApp() {
             <div className="mt-4 inline-flex items-center gap-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                 <Image
-                  src="/calendar.png"
+                  src="/logos/calendar.png"
                   alt="Google Agenda"
                   width={32}
                   height={32}
