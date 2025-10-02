@@ -1,7 +1,11 @@
+// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/layout.tsx
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/react";
+// import { Analytics } from "@vercel/analytics/react"; // Removido
+
+const appBaseUrl = process.env.APP_BASE_URL ?? "http://localhost:3000";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,6 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(appBaseUrl),
   title: "ZapAgenda — Agendamentos via WhatsApp",
   description: "Cliente escolhe horário, você recebe no WhatsApp.",
   openGraph: {
@@ -33,9 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         {children}
-        <Analytics />
+        {/* <Analytics /> */}
       </body>
     </html>
   );
 }
-

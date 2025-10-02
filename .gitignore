@@ -42,3 +42,5 @@ next-env.d.ts
 
 # local lead capture log
 leads.dev.json
+
+package-lock.json
