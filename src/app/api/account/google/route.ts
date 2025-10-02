@@ -222,8 +222,14 @@ export async function POST(req: Request) {
         payload.lastCalendarSwapAt = new Date(now).toISOString();
       }
       payload.updatedAt = new Date(now).toISOString();
-      await (await import("@/lib/firebaseAdmin")).getDb()
-        .collection("accounts").doc(account.uid).set(payload, { merge: true });
+      {
+        const dbRef = (await import("@/lib/firebaseAdmin")).getDb();
+        await dbRef.collection("accounts").doc(account.uid).set(payload, { merge: true });
+        // manter índice por slug atualizado
+        if (updatedCalendar.slug) {
+          await dbRef.collection("linkedCalendars").doc(updatedCalendar.slug).set(updatedCalendar);
+        }
+      }
       return NextResponse.json({ ok: true, account: { ...account, ...payload } });
     }
 
@@ -286,6 +292,8 @@ export async function POST(req: Request) {
       updatedAt: new Date(now).toISOString(),
     };
     await db.collection("accounts").doc(account.uid).set(payload, { merge: true });
+    // indexar por slug para consulta pública
+    await db.collection("linkedCalendars").doc(slug).set(newLinkedCalendar);
     return NextResponse.json({ ok: true, account: { ...account, ...payload } });
   }
 
@@ -297,8 +305,17 @@ export async function POST(req: Request) {
     if (account.activeCalendarId === id) {
       payload.activeCalendarId = next[0]?.id ?? null;
     }
-    await (await import("@/lib/firebaseAdmin")).getDb()
-      .collection("accounts").doc(account.uid).set(payload, { merge: true });
+    {
+      const dbRef = (await import("@/lib/firebaseAdmin")).getDb();
+      await dbRef.collection("accounts").doc(account.uid).set(payload, { merge: true });
+      // remover índice deste slug
+      try {
+        const removed = account.linkedCalendars.find((c) => c.id === id);
+        if (removed?.slug) {
+          await dbRef.collection("linkedCalendars").doc(removed.slug).delete();
+        }
+      } catch {}
+    }
     return NextResponse.json({ ok: true, account: { ...account, ...payload } });
   }
 
@@ -311,8 +328,18 @@ export async function POST(req: Request) {
       activeCalendarId: null as string | null,
       updatedAt: new Date(now).toISOString(),
     };
-    await (await import("@/lib/firebaseAdmin")).getDb()
-      .collection("accounts").doc(account.uid).set(payload, { merge: true });
+    {
+      const dbRef = (await import("@/lib/firebaseAdmin")).getDb();
+      // remover todos os índices desta conta
+      try {
+        for (const cal of account.linkedCalendars) {
+          if (cal.slug) {
+            await dbRef.collection("linkedCalendars").doc(cal.slug).delete().catch(() => {});
+          }
+        }
+      } catch {}
+      await dbRef.collection("accounts").doc(account.uid).set(payload, { merge: true });
+    }
     return NextResponse.json({ ok: true, account: { ...account, ...payload } });
   }
 
@@ -391,8 +418,14 @@ export async function POST(req: Request) {
       linkedCalendars: nextLinkedCalendars,
       updatedAt: new Date(now).toISOString(),
     };
-    await (await import("@/lib/firebaseAdmin")).getDb()
-      .collection("accounts").doc(account.uid).set(payload, { merge: true });
+    {
+      const dbRef = (await import("@/lib/firebaseAdmin")).getDb();
+      await dbRef.collection("accounts").doc(account.uid).set(payload, { merge: true });
+      // manter índice por slug atualizado
+      if (updatedCalendar.slug) {
+        await dbRef.collection("linkedCalendars").doc(updatedCalendar.slug).set(updatedCalendar);
+      }
+    }
     return NextResponse.json({ ok: true, account: { ...account, ...payload } });
   }
 

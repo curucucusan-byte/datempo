@@ -62,23 +62,35 @@ export type StripePaymentIntent = {
 // Criar ou recuperar um cliente Stripe
 export async function getOrCreateStripeCustomer(uid: string, email?: string | null): Promise<StripeCustomer> {
   const stripe = getStripeClient();
-  // Primeiro, tenta encontrar um cliente existente pelo metadata.uid
-  const existingCustomers = await stripe.customers.list({
-    limit: 1,
-    metadata: { uid },
-  });
-
-  if (existingCustomers.data.length > 0) {
-    return existingCustomers.data[0] as StripeCustomer;
+  // Tenta via Search API por metadata.uid
+  try {
+    const found = await stripe.customers.search({
+      query: `metadata['uid']:'${uid.replace(/'/g, "")}'`,
+      limit: 1,
+    });
+    if (found.data.length > 0) {
+      return found.data[0] as unknown as StripeCustomer;
+    }
+  } catch {
+    // fallback silencioso
   }
 
-  // Se não encontrar, cria um novo cliente
+  // Fallback: tenta por email (se disponível)
+  if (email) {
+    try {
+      const list = await stripe.customers.list({ email, limit: 1 });
+      if (list.data.length > 0) {
+        return list.data[0] as unknown as StripeCustomer;
+      }
+    } catch {}
+  }
+
+  // Cria novo
   const customer = await stripe.customers.create({
     email: email || undefined,
     metadata: { uid },
   });
-
-  return customer as StripeCustomer;
+  return customer as unknown as StripeCustomer;
 }
 
 // Criar uma assinatura recorrente para cartão de crédito

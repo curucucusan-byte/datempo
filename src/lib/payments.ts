@@ -154,7 +154,7 @@ export async function createPixPayment(
     uid,
     plan,
     method: "pix",
-    amount: planDetails.monthlyPrice,
+    amount: planDetails.monthlyPrice * 100, // guardar em centavos
     currency: "brl",
     status: stripePaymentIntent.status as PaymentRecord["status"],
     stripePaymentIntentId: stripePaymentIntent.id,

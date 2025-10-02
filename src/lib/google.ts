@@ -141,13 +141,26 @@ export async function getPrimaryCalendar(uid: string): Promise<{ id: string; sum
 
 export async function getLinkedCalendarBySlug(slug: string): Promise<LinkedCalendar | null> {
   const db = getDb();
-  const snapshot = await db.collection("accounts").where("linkedCalendars.slug", "==", slug).limit(1).get();
-  if (snapshot.empty) {
+  // Nova estratégia: coleção indexada por slug
+  const bySlug = await db.collection("linkedCalendars").doc(slug).get();
+  if (bySlug.exists) {
+    const data = bySlug.data() as LinkedCalendar | null;
+    return data ?? null;
+  }
+  // Backwards compatibility: tentar encontrar dentro do array (pode não funcionar em todos cenários no Firestore)
+  try {
+    const snapshot = await db
+      .collection("accounts")
+      .where("linkedCalendars.slug", "==", slug)
+      .limit(1)
+      .get();
+    if (snapshot.empty) return null;
+    const accountData = snapshot.docs[0].data();
+    const linkedCalendars = accountData.linkedCalendars as LinkedCalendar[];
+    return linkedCalendars.find((cal) => cal.slug === slug) || null;
+  } catch {
     return null;
   }
-  const accountData = snapshot.docs[0].data();
-  const linkedCalendars = accountData.linkedCalendars as LinkedCalendar[];
-  return linkedCalendars.find(cal => cal.slug === slug) || null;
 }
 
 export async function freeBusyForDate(uid: string, calendarId: string, date: string) {
