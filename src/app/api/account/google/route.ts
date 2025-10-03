@@ -168,6 +168,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Informe id, summary, description e whatsappNumber do calendário" }, { status: 400 });
     }
 
+    let normalizedWhatsapp: string;
+    try {
+      normalizedWhatsapp = normalizeWhatsAppNumber(whatsappNumber);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "WhatsApp inválido";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
     const existsIdx = account.linkedCalendars.findIndex((c) => c.id === id);
     if (existsIdx !== -1) {
       // Já vinculado: apenas atualiza os detalhes e define como ativo (sem contar como troca se já era ativo)
@@ -184,7 +192,7 @@ export async function POST(req: Request) {
       const updatedCalendar: LinkedCalendar = {
         ...account.linkedCalendars[existsIdx],
         description,
-        whatsappNumber,
+        whatsappNumber: normalizedWhatsapp,
         slotDurationMinutes: sanitizeSlotDuration(
           slotDurationMinutes ?? account.linkedCalendars[existsIdx]?.slotDurationMinutes
         ),
@@ -265,7 +273,7 @@ export async function POST(req: Request) {
       ownerUid: auth.uid,
       slug,
       description,
-      whatsappNumber,
+      whatsappNumber: normalizedWhatsapp,
       active: true, // Nova agenda é ativa por padrão
       slotDurationMinutes: sanitizeSlotDuration(slotDurationMinutes),
       workHours: sanitizeWorkHours(workHours),
@@ -393,7 +401,9 @@ export async function POST(req: Request) {
       ...current,
       description: typeof description === "string" && description.trim() ? description.trim() : current.description,
       whatsappNumber:
-        typeof whatsappNumber === "string" && whatsappNumber.trim() ? whatsappNumber.trim() : current.whatsappNumber,
+        typeof whatsappNumber === "string" && whatsappNumber.trim()
+          ? normalizeWhatsAppNumber(whatsappNumber)
+          : current.whatsappNumber,
       slotDurationMinutes: sanitizeSlotDuration(
         typeof slotDurationMinutes !== "undefined" ? slotDurationMinutes : current.slotDurationMinutes
       ),
