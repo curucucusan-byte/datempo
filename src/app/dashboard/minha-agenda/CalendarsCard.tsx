@@ -81,6 +81,7 @@ export default function CalendarsCard() {
   const planDetails = ACTIVE_PLANS[effectivePlanId];
   const planLimit = planDetails.limits.maxConnectedCalendars;
   const paymentFeatureEnabled = planDetails.features.paymentAtBooking;
+  const isPro = effectivePlanId === "pro";
 
   const refresh = useCallback(async () => {
     setLoading(true);
