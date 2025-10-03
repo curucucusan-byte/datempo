@@ -2,11 +2,15 @@ Bora dar tração ao ZapAgenda sem romantizar: produto tem que resolver uma dor 
 
 1) Funcionalidades “killer” (prova de valor em 30s)
 
-Link de agendamento 1-tap: zap.agenda/meu-negocio abre WhatsApp com mensagem pré-preenchida, retorna slots disponíveis e confirma em 3 toques.
+Link de agendamento 1-tap: zap.agenda/meu-negocio abre WhatsApp com mensagem pré-preenchida (`CONFIRMAR {TOKEN} {DATA_LOCAL}`), retorna slots disponíveis e confirma em 3 toques.
 
-Confirmação e lembretes automáticos no WhatsApp: +24h / +3h / +15min, com botões “remarcar”, “cancelar”, “ver rota”.
+Confirmação e lembretes automáticos no WhatsApp (Cloud API): cliente inicia a sessão; operamos com janela de segurança de 22h (nunca iniciamos conversa). Lembretes curtos agregados com botões “remarcar”, “cancelar”, “ver rota”.
+
+Estados claros (`PENDING → TENTATIVE/CONFIRMED → CANCELLED/EXPIRED`) e links de aprovação seguros para o dono.
 
 Sincronização bi-direcional com Google Calendar: bloqueio de conflitos, horários de almoço/folga, buffers antes/depois.
+
+Checkout no ato (opcional): habilitar pagamento obrigatório por serviço/agenda, com confirmação automática pós-webhook (`paid|approved`) e reembolso rastreável.
 
 Regrinhas inteligentes: duração por serviço, limite/dia, janela de antecipação, no-show fee (mesmo que só informativa), capacidade por recurso (ex.: sala/equipamento).
 
@@ -66,17 +70,25 @@ Product-led sales: versão grátis útil (1 agenda, 1 recurso, 50 agendamentos/m
 
 LGPD: base legal = execução de contrato + consentimento para marketing; opt-out em 1 toque; DPA simples.
 
-Política do WhatsApp: HSM/template só para notificações transacionais; marketing apenas com opt-in.
+Política do WhatsApp: nunca iniciar conversa (sem HSM/template); apenas responder dentro da janela operacional de 22h. Marketing apenas com opt‑in por canais alternativos.
 
 Uptime e exportação: status page simples, exportar .csv e .ics; nunca “prender” o usuário.
 
 Segurança: webhook assinado, rotating tokens, least-privilege nos scopes do Google.
 
+**Higiene imediata para Cloud API**
+
+- Remover Z-API/Twilio do código, `.env` e documentação; único canal oficial passa a ser WhatsApp Cloud API.
+- Criar checklist de onboarding com `WA_META_TOKEN`, `WA_PHONE_NUMBER_ID`, `WA_WABA_ID`, `WA_VERIFY_TOKEN`, `WA_GRAPH_BASE` e (opcional) `META_APP_SECRET`.
+- Atualizar mensagens padrão para respeitar a janela operacional de 22h e consolidar confirmações em uma única resposta.
+- Expor no painel o estado de cada agendamento (PENDING/TENTATIVE/CONFIRMED/EXPIRED/CANCELLED) e o log de mensagens.
+- Definir template de webhook seguro para o PSP escolhido (`paymentWebhookSecret`, retry/idempotência) e sinalizar `paid|approved` → `CONFIRMED` de forma automática.
+
 6) Métricas que importam (North Star + diagnósticas)
 
 North Star: Sessões confirmadas por semana por conta.
 
-Ativação: % que conecta Google Calendar + cria 1 serviço + confirma 1 sessão em 24h.
+Ativação: % que conecta Google Calendar + cria 1 serviço + confirma 1 sessão (com guard de 22h em vigor).
 
 Retenção 8/12 semanas; No-show rate; Tempo médio para confirmação; CAC por canal; % reviews geradas.
 
@@ -96,7 +108,7 @@ Core: Next.js/React, Yarn; Postgres (pg_trgm), Redis; fila (BullMQ).
 
 Search externa (quando precisar): Meilisearch para autosuggest e filtros por serviço/recurso.
 
-Mensageria: WhatsApp via provedor (Z-API/Meta Cloud API), templates versionados.
+Mensageria: WhatsApp Cloud API (Meta) com logs + tokens; remover provedores legados (Z-API, Twilio).
 
 Infra: Vercel/Fly + banco gerenciado; feature flags + Sentry.
 
@@ -139,63 +151,39 @@ Bora de freemium pro ZapAgenda — com tesoura de custos numa mão e alavanca de
 
 Camadas sugeridas (pt-BR, preços de referência)
 
-Grátis (Freemium) – R$ 0/mês
+Grátis (Free) – R$ 0/mês
 
-1 agenda (profissional ou recurso)
-
-1 calendário conectado (Google)
-
-2 serviços ativos
+1 agenda conectada (Google)
 
 50 agendamentos/mês
 
-2 lembretes WhatsApp por agendamento (ex.: +24h e +2h) até 100 mensagens/mês
+WhatsApp incluído: 50 mensagens/mês
 
-Página pública com selo “Feito com ZapAgenda”
+Sem lembretes automáticos
 
-Relatório básico (ocupação semanal, no-show)
+Starter – R$ 49/mês
 
-Suporte por e-mail assíncrono
-
-Starter – R$ 39/mês
-
-Até 3 agendas + 3 calendários
-
-Serviços ilimitados
+Até 3 agendas conectadas (Google)
 
 300 agendamentos/mês
 
-3 lembretes WhatsApp por agendamento (ex.: +24h, +3h, +15min) até 800 mensagens/mês
+WhatsApp incluído: 300 mensagens/mês (excedente por uso)
 
-Reagendamento 1-tap no WhatsApp
+Lembretes automáticos por WhatsApp: até 2 por agendamento
 
-Widget embutível no site/Instagram
-
-Reviews Google integradas (pós-atendimento)
-
-Relatórios com RFM simples (recência/frequência/valor)
+Pagamentos no ato: opcional (confirma após pagamento aprovado)
 
 Pro – R$ 99/mês
 
-Até 10 agendas + 10 calendários
+Até 20 agendas conectadas (Google)
 
-Agendamento em equipe (regras por profissional)
+1.000 agendamentos/mês
 
-Lista de espera inteligente + buracos de agenda
+WhatsApp incluído: 1.000 mensagens/mês (excedente por uso)
 
-2 fluxos automáticos de reativação (30/60 dias)
+Lembretes automáticos por WhatsApp: até 3 por agendamento
 
-Mensagens WhatsApp/mês: 2.500
-
-Páginas SEO por serviço/bairro (schema + sitemaps)
-
-Exportações CSV/ICS + Webhooks
-
-Suporte em horário comercial
-
-Business – R$ 249/mês
-
-Agendas ilimitadas
+Reviews Google; no‑show com pagamento no ato
 
 SLA e status page
 
@@ -223,7 +211,7 @@ Fadiga operacional: Starter libera 3º lembrete, reagendamento 1-tap e reviews a
 
 Dinheiro na mesa: Pro libera reativação (clientes perdidos voltam), lista de espera, SEO local que traz novos clientes.
 
-Escala: Business remove limites e libera integrações.
+Escala: Pro eleva limites e libera integrações.
 
 Gating por limites (evita abuso e dá sensação de avanço)
 
@@ -237,7 +225,7 @@ Recursos caros (reativação, SEO páginas por bairro, webhooks): apenas pago.
 
 Custos vs. preço (para não tomar prejuízo)
 
-WhatsApp: cada template custará centavos e varia por provedor. Tenha cota incluída por plano (vide acima) e overage automático (ex.: R$ 0,06/mensagem excedente, cobrados no fim do mês).
+WhatsApp: operar com janela de 22h reduz custo (sem iniciar conversa). Controlar volume por plano e usar e-mail/SMS quando a sessão não estiver válida.
 
 Infra: Postgres + Redis + hospedagem. O principal custo variável será mensageria. Use rate limits por conta e batching onde couber.
 
@@ -273,7 +261,7 @@ Anti-abuso e qualidade
 
 Quota dura por IP/conta no Free (evita fazenda de spam).
 
-Templates aprovados e cooldown entre mensagens para não banir número.
+Respeitar cooldown e guard de 22h entre mensagens para evitar bloqueios.
 
 Verificação de domínio/negócio no Pro (melhora entregabilidade).
 
@@ -285,7 +273,7 @@ Conectar Google Calendar
 
 Definir 2 serviços (duração + buffer)
 
-Ativar lembretes (template pronto)
+Ativar lembretes (com guard 22h habilitado)
 
 Gerar link público + testar um agendamento “fantasma”
 
