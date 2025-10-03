@@ -671,7 +671,7 @@ export default function CalendarsCard() {
                           className="w-full rounded-xl bg-white/10 px-3 py-2 text-sm ring-1 ring-white/15"
                           placeholder="/agenda-logos/seu-slug/logo.webp"
                         />
-                        <p className="mt-1 text-[10px] text-slate-500">Arquivos em public/. Ex.: public/agenda-logos/{{slug}}/logo.webp</p>
+                        <p className="mt-1 text-[10px] text-slate-500">Arquivos em public/. Ex.: public/agenda-logos/seu-slug/logo.webp</p>
                         <div className="mt-2 flex items-center gap-2">
                           <input
                             ref={(el) => (uploadRefs.current[c.id] = el)}
