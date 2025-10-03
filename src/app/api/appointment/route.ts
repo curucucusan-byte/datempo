@@ -150,10 +150,8 @@ export async function POST(req: Request) {
 
     if (!linkedCalendar.ownerUid) {
       return NextResponse.json(
-        {
-          error: "Agenda sem proprietário vinculado. Refaça a conexão com o Google no painel antes de aceitar agendamentos.",
-        },
-        { status: 500 }
+        { error: "Agenda indisponível no momento. Tente novamente mais tarde." },
+        { status: 503 },
       );
     }
 
@@ -318,7 +316,9 @@ export async function POST(req: Request) {
     });
   } catch (err: unknown) {
     console.error("appointment error:", err);
-    const message = err instanceof Error ? err.message : "Erro interno";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Agenda indisponível no momento. Tente novamente mais tarde." },
+      { status: 500 },
+    );
   }
 }
