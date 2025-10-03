@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ACTIVE_PLANS, CALENDAR_SWAP_INTERVAL_MS, isActivePlan, type ActivePlanId, type PlanId } from "@/lib/plans";
 import { LinkedCalendar } from "@/lib/google"; // Importar o tipo LinkedCalendar
 
@@ -74,6 +74,7 @@ export default function CalendarsCard() {
   const [status, setStatus] = useState<string | null>(null);
 
   const [drafts, setDrafts] = useState<Record<string, CalendarDraft>>({});
+  const uploadRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const configuredBaseUrl = (process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.APP_BASE_URL || "").replace(/\/$/, "");
   const [publicBaseUrl, setPublicBaseUrl] = useState<string>(configuredBaseUrl);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
@@ -371,6 +372,47 @@ export default function CalendarsCard() {
       setStatus(err instanceof Error ? err.message : "Erro ao salvar alterações");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function uploadLogo(slug: string | undefined, calendarId: string) {
+    const input = uploadRefs.current[calendarId] || null;
+    if (!slug) {
+      setStatus("Gere o link público da agenda antes de enviar o logo.");
+      return;
+    }
+    if (!input || !input.files || input.files.length === 0) {
+      setStatus("Selecione um arquivo de imagem antes de enviar.");
+      return;
+    }
+
+    const file = input.files[0];
+    setBusy(true);
+    setStatus(null);
+    try {
+      const form = new FormData();
+      form.append("slug", slug);
+      form.append("file", file);
+
+      const res = await fetch("/api/logo/upload", {
+        method: "POST",
+        body: form,
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string; path?: string };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || `Erro ${res.status}`);
+      }
+      const nextPath = data.path && typeof data.path === "string" ? data.path : `/agenda-logos/${slug}/logo.webp`;
+      handleDraftChange(calendarId, "logoPath", nextPath);
+      setStatus("Logotipo atualizado.");
+      void refresh();
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Erro ao enviar logotipo");
+    } finally {
+      setBusy(false);
+      if (input) {
+        input.value = "";
+      }
     }
   }
 

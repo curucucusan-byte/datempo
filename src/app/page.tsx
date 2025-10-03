@@ -45,6 +45,45 @@ export default function LandingWhatsApp() {
     </div>
   ));
 
+  const planOrder: (keyof typeof ACTIVE_PLANS)[] = ["free", "starter", "pro"];
+  const planData = planOrder.map((id) => ACTIVE_PLANS[id]);
+  const numberFormatter = new Intl.NumberFormat("pt-BR");
+  const comparisonRows: {
+    label: string;
+    getValue: (plan: (typeof planData)[number]) => string;
+  }[] = [
+    {
+      label: "Preço mensal",
+      getValue: (plan) => plan.priceDisplay,
+    },
+    {
+      label: "Agendas conectadas",
+      getValue: (plan) =>
+        plan.limits.maxConnectedCalendars === 1
+          ? "1 agenda"
+          : `Até ${plan.limits.maxConnectedCalendars} agendas`,
+    },
+    {
+      label: "Agendamentos por mês",
+      getValue: (plan) => `${numberFormatter.format(plan.limits.maxAppointmentsPerMonth)} reservas`,
+    },
+    {
+      label: "Mensagens WhatsApp incluídas",
+      getValue: (plan) => `${numberFormatter.format(plan.limits.whatsappMessagesIncludedPerMonth)} / mês`,
+    },
+    {
+      label: "Lembretes automáticos",
+      getValue: (plan) =>
+        plan.limits.maxAutoRemindersPerAppointment > 0
+          ? `Até ${plan.limits.maxAutoRemindersPerAppointment} por agendamento`
+          : "Não incluso",
+    },
+    {
+      label: "Reserva paga (anti-furo)",
+      getValue: (plan) => (plan.features.paymentAtBooking ? "Disponível" : "—"),
+    },
+  ];
+
   const scrollToFaqSection = () => {
     const faqSection = document.getElementById("faq");
     faqSection?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -77,7 +116,7 @@ export default function LandingWhatsApp() {
             href="#pricing"
             className="rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-slate-950 hover:bg-emerald-400"
           >
-            Experimentar grátis
+            Ver planos
           </a>
         </div>
       </header>
@@ -190,41 +229,35 @@ export default function LandingWhatsApp() {
       {/* PRICING */}
       <section id="pricing" className="mx-auto max-w-6xl px-6 py-12">
         <h2 className="text-2xl sm:text-3xl font-semibold">Planos simples</h2>
-        <p className="mt-2 text-slate-300">Preço acessível e transparente, sem surpresas.</p>
 
-        <div className="mt-8 grid sm:grid-cols-2 gap-6">
-          {["free", "starter", "pro"].map((planKey) => {
-            const plan = ACTIVE_PLANS[planKey as keyof typeof ACTIVE_PLANS];
-            const highlight = plan.id === "starter";
-            return (
-              <div
-                key={plan.id}
-                className={`rounded-2xl border ${highlight ? "border-emerald-400/60 bg-emerald-500/5" : "border-white/10 bg-slate-900/60"} p-6`}
-              >
-              <div className="flex items-baseline justify-between">
-                <h3 className="text-lg font-semibold">{plan.label}</h3>
-                <span className={`text-xs ${highlight ? "text-emerald-300" : "text-slate-400"}`}>
-                  {highlight ? "mais popular" : ""}
-                </span>
-              </div>
-              <div className="mt-3 text-2xl font-bold">{plan.priceDisplay}</div>
-              <ul className="mt-4 space-y-2 text-sm text-slate-300">
-                {plan.bullets.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2">
-                    <svg viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 text-emerald-400"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.012 10.012 0 0 0 12 2Zm4.7 7.29l-5.06 5.06a1 1 0 0 1-1.41 0l-2.12-2.12a1 1 0 1 1 1.41-1.41l1.41 1.41 4.36-4.36a1 1 0 1 1 1.41 1.41Z"/></svg>
-                    <span>{perk}</span>
-                  </li>
+        <div className="mt-8 overflow-x-auto rounded-3xl border border-white/10 bg-slate-900/60">
+          <table className="min-w-full text-sm">
+            <thead className="bg-white/5 text-xs uppercase tracking-wide text-slate-300">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold text-slate-200">&nbsp;</th>
+                {planData.map((plan) => (
+                  <th
+                    key={plan.id}
+                    className={`px-4 py-3 text-left font-semibold ${plan.id === "starter" ? "text-emerald-300" : "text-slate-200"}`}
+                  >
+                    {plan.label}
+                  </th>
                 ))}
-              </ul>
-              <Link
-                href="/login"
-                className={`mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold ${highlight ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400" : "ring-1 ring-white/15 hover:bg-white/10"}`}
-              >
-                Experimentar grátis
-              </Link>
-              </div>
-            );
-          })}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {comparisonRows.map((row) => (
+                <tr key={row.label} className="even:bg-white/5 hover:bg-white/10 transition-colors">
+                  <th className="px-4 py-3 text-left text-slate-300 font-medium">{row.label}</th>
+                  {planData.map((plan) => (
+                    <td key={`${plan.id}-${row.label}`} className="px-4 py-3 text-slate-200">
+                      {row.getValue(plan)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
