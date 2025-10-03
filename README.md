@@ -7,6 +7,19 @@ Last updated: 2025-09-29 18:30
 
 [![Deployed on Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mgotze/zapagenda)
 
+## Atualizações recentes (Out/2025)
+
+- Plano Essencial agora é totalmente gratuito (1 agenda ativa, sem lembretes) e serve como fallback automático quando pagamentos expiram.
+- Contas Pro que perdem a cobrança são rebaixadas para Essencial, mantendo agendas extra desativadas até upgrade.
+- Build/deploy padronizados com Yarn Classic (`yarn install`, `yarn dev`, `yarn build`).
+
+## Próximos passos
+
+- Rodar `yarn build` e validar um deploy pós-alterações (Stripe/Pix + ícone do calendário).
+- Atualizar textos públicos para destacar o plano Essencial gratuito.
+- Testar em staging o downgrade automático: simular falha/cancelamento de cobrança e checar agendas bloqueadas.
+- Criar dashboards métricos para monitorar upgrades/downgrades após o novo modelo.
+
 ## Getting Started
 
 First, run the development server (Yarn Classic only):
