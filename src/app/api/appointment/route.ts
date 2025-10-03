@@ -249,7 +249,12 @@ export async function POST(req: Request) {
     confirmMsgLines.push("\nVocê receberá lembretes automáticos pelo WhatsApp se a agenda habilitou a função.");
     const confirmMsg = confirmMsgLines.join("\n");
 
-    await sendWhats({ to: phone, message: confirmMsg });
+    try {
+      await sendWhats({ to: phone, message: confirmMsg });
+    } catch (err) {
+      console.error("[apt:sendWhats:customer:error]", err);
+      // não interromper o agendamento por falha de envio
+    }
 
     if (ownerPhone) {
       let trialLine = "";
@@ -263,16 +268,20 @@ export async function POST(req: Request) {
           }
         } catch {}
       }
-      await sendWhats({
-        to: ownerPhone,
-        message:
-          `🧾 Novo agendamento — ${linkedCalendar.description || linkedCalendar.summary}\n` +
-          `Cliente: ${body.customerName}\n` +
-          `Quando: ${humanDate}\n` +
-          (requiresPrepayment ? `Pagamento: ${paymentAmountLocalized} (${prepaymentMode === "manual" ? "manual" : "online"})\n` : "") +
-          `Contato do cliente: ${phone}` +
-          trialLine,
-      });
+      try {
+        await sendWhats({
+          to: ownerPhone,
+          message:
+            `🧾 Novo agendamento — ${linkedCalendar.description || linkedCalendar.summary}\n` +
+            `Cliente: ${body.customerName}\n` +
+            `Quando: ${humanDate}\n` +
+            (requiresPrepayment ? `Pagamento: ${paymentAmountLocalized} (${prepaymentMode === "manual" ? "manual" : "online"})\n` : "") +
+            `Contato do cliente: ${phone}` +
+            trialLine,
+        });
+      } catch (err) {
+        console.error("[apt:sendWhats:owner:error]", err);
+      }
     }
 
     // ---------- persistir ----------
@@ -300,6 +309,13 @@ export async function POST(req: Request) {
     const icsUrl = `${base}/api/ics/${appt.id}`;
 
     // ---------- resposta ----------
+    console.info("[apt:create]", {
+      slug: body.slug,
+      when: start.toISOString(),
+      tz: timeZone,
+      requiresPrepayment,
+    });
+
     return NextResponse.json({
       ok: true,
       id: appt.id,

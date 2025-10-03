@@ -11,7 +11,7 @@ function required(name: string, value: string | undefined) {
 }
 
 export async function sendWhats({ to, message }: WhatsParams) {
-  const provider = (process.env.WHATS_PROVIDER || "zapi").toLowerCase();
+  const provider = (process.env.WHATS_PROVIDER || "meta").toLowerCase();
 
   if (provider === "mock" || provider === "test" || provider === "dev") {
     console.info("[whats:mock]", { to, message });
@@ -42,23 +42,50 @@ export async function sendWhats({ to, message }: WhatsParams) {
   }
 
   if (provider === "zapi") {
-    const instance = required("ZAPI_INSTANCE_ID", process.env.ZAPI_INSTANCE_ID);
-    const token = required("ZAPI_TOKEN", process.env.ZAPI_TOKEN);
-    // Doc comum: POST https://api.z-api.io/instances/{instance}/token/{token}/send-text
-    const url = `https://api.z-api.io/instances/${instance}/token/${token}/send-text`;
-    const payload = {
-      phone: to.replace(/\D/g, ""), // Z-API costuma aceitar só dígitos (com DDI)
-      message,
-    };
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error(`Z-API error ${res.status}: ${await res.text()}`);
-    return await res.json();
+    // Descontinuado. Mantido apenas para compatibilidade, mas não envia.
+    console.warn("[whats:zapi] descontinuado — defina WHATS_PROVIDER=meta");
+    console.info("[whats:mock]", { to, message });
+    return { ok: true, provider: "mock", to, message } as const;
   }
 
-  throw new Error(`WHATS_PROVIDER desconhecido: ${provider}`);
+  if (provider === "meta" || provider === "whatsapp" || provider === "cloud" || provider === "wa") {
+    const token = process.env.WA_META_TOKEN;
+    const phoneId = process.env.WA_PHONE_NUMBER_ID;
+    const base = process.env.WA_GRAPH_BASE || "https://graph.facebook.com/v20.0";
+    if (!token || !phoneId) {
+      console.warn("[whats:meta] missing env (WA_META_TOKEN/WA_PHONE_NUMBER_ID). Skipping send.");
+      console.info("[whats:mock]", { to, message });
+      return { ok: false, skipped: true, reason: "missing_env" } as const;
+    }
+
+    const url = `${base.replace(/\/$/, "")}/${encodeURIComponent(phoneId)}/messages`;
+    const toDigits = to.replace(/\D/g, "");
+    const body = {
+      messaging_product: "whatsapp",
+      to: toDigits,
+      type: "text",
+      text: { preview_url: false, body: message },
+    } as const;
+    console.info("[whats:meta:req]", { url, to: toDigits, len: message.length });
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error("[whats:meta:error]", res.status, txt);
+      throw new Error(`Meta error ${res.status}: ${txt}`);
+    }
+    const json = await res.json();
+    console.info("[whats:meta:ok]", json?.messages?.[0]?.id || json);
+    return json;
+  }
+
+  console.warn(`[whats] Provedor desconhecido: ${provider}. Usando mock.`);
+  console.info("[whats:mock]", { to, message });
+  return { ok: true, provider: "mock", to, message } as const;
 }

@@ -664,6 +664,42 @@ export default function CalendarsCard() {
 
                     <div className="grid gap-3 md:grid-cols-2">
                       <div>
+                        <label className="block text-xs text-slate-300 mb-1">Caminho do logo (em public)</label>
+                        <input
+                          value={draft.logoPath}
+                          onChange={(e) => handleDraftChange(c.id, "logoPath", e.target.value)}
+                          className="w-full rounded-xl bg-white/10 px-3 py-2 text-sm ring-1 ring-white/15"
+                          placeholder="/agenda-logos/seu-slug/logo.webp"
+                        />
+                        <p className="mt-1 text-[10px] text-slate-500">Arquivos em public/. Ex.: public/agenda-logos/{{slug}}/logo.webp</p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <input
+                            ref={(el) => (uploadRefs.current[c.id] = el)}
+                            type="file"
+                            accept="image/*"
+                            className="text-xs"
+                            aria-label="Selecionar arquivo de logotipo"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => uploadLogo(c.slug, c.id)}
+                            disabled={busy}
+                            className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/15 disabled:opacity-60"
+                          >
+                            Enviar para public
+                          </button>
+                        </div>
+                        {draft.logoPath && (
+                          <div className="mt-2 flex items-center gap-3">
+                            <img src={draft.logoPath} alt="Logo" className="h-10 w-10 rounded-lg object-cover ring-1 ring-white/10" />
+                            <span className="text-xs text-slate-400">Pré-visualização</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
                         <label className="block text-xs text-slate-300 mb-1">Duração padrão (minutos)</label>
                         <input
                           type="number"
