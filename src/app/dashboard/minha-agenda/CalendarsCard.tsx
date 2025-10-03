@@ -3,10 +3,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ACTIVE_PLANS, CALENDAR_SWAP_INTERVAL_MS } from "@/lib/plans";
+import { ACTIVE_PLANS, CALENDAR_SWAP_INTERVAL_MS, isActivePlan, type ActivePlanId, type PlanId } from "@/lib/plans";
 import { LinkedCalendar } from "@/lib/google"; // Importar o tipo LinkedCalendar
 
-const DEFAULT_SERVICES = [{ name: "Atendimento padrão", minutes: 60 }];
+const DEFAULT_SLOT_DURATION = 60;
 const DEFAULT_WORK_HOURS: Record<string, string[]> = {
   monday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
   tuesday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
@@ -16,15 +16,13 @@ const DEFAULT_WORK_HOURS: Record<string, string[]> = {
   saturday: [],
   sunday: [],
 };
-
-const SERVICES_EXAMPLE = '[{"name":"Consulta","minutes":60}]';
 const WORK_HOURS_EXAMPLE = '{"monday":["09:00","10:00"],"tuesday":[]}';
 
 type Calendar = { id: string; summary: string };
 type AccountResp = {
   ok?: boolean;
   account?: {
-    plan: string;
+    plan: PlanId;
     linkedCalendars: LinkedCalendar[]; // Usar LinkedCalendar
     activeCalendarId?: string | null;
     lastCalendarSwapAt?: string | null;
@@ -35,7 +33,7 @@ type AccountResp = {
 type CalendarDraft = {
   description: string;
   whatsappNumber: string;
-  services: string;
+  slotDurationMinutes: string;
   workHours: string;
   requiresPrepayment: boolean;
   prepaymentMode: "manual" | "stripe";
@@ -63,6 +61,7 @@ export default function CalendarsCard() {
   const [selectedCalendarId, setSelectedCalendarId] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [whatsappNumber, setWhatsappNumber] = useState<string>("");
+  const [linkSlotDuration, setLinkSlotDuration] = useState<string>(String(DEFAULT_SLOT_DURATION));
   const [linkRequiresPrepayment, setLinkRequiresPrepayment] = useState(false);
   const [linkPrepaymentMode, setLinkPrepaymentMode] = useState<"manual" | "stripe">("manual");
   const [linkPrepaymentAmount, setLinkPrepaymentAmount] = useState("0");
@@ -73,6 +72,15 @@ export default function CalendarsCard() {
   const [status, setStatus] = useState<string | null>(null);
 
   const [drafts, setDrafts] = useState<Record<string, CalendarDraft>>({});
+  const configuredBaseUrl = (process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.APP_BASE_URL || "").replace(/\/$/, "");
+  const [publicBaseUrl, setPublicBaseUrl] = useState<string>(configuredBaseUrl);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
+  const effectivePlanId: ActivePlanId =
+    account?.plan && isActivePlan(account.plan) ? account.plan : "free";
+  const planDetails = ACTIVE_PLANS[effectivePlanId];
+  const planLimit = planDetails.limits.maxConnectedCalendars;
+  const paymentFeatureEnabled = planDetails.features.paymentAtBooking;
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -82,19 +90,23 @@ export default function CalendarsCard() {
       const j = (await r.json()) as AccountResp;
       if (!r.ok || !j.ok || !j.account) throw new Error(j.error || `Erro ${r.status}`);
       setAccount(j.account);
+      const remotePlanId: ActivePlanId =
+        j.account.plan && isActivePlan(j.account.plan) ? j.account.plan : "free";
+      const remotePlanDetails = ACTIVE_PLANS[remotePlanId];
+      const remotePaymentEnabled = remotePlanDetails.features.paymentAtBooking;
       const draftMap: Record<string, CalendarDraft> = {};
       for (const calendar of j.account.linkedCalendars ?? []) {
         draftMap[calendar.id] = {
           description: calendar.description ?? "",
           whatsappNumber: calendar.whatsappNumber ?? "",
-          services: JSON.stringify(calendar.services?.length ? calendar.services : DEFAULT_SERVICES, null, 2),
+          slotDurationMinutes: String(calendar.slotDurationMinutes ?? DEFAULT_SLOT_DURATION),
           workHours: JSON.stringify(calendar.workHours && Object.keys(calendar.workHours).length ? calendar.workHours : DEFAULT_WORK_HOURS, null, 2),
-          requiresPrepayment: Boolean(calendar.requiresPrepayment),
-          prepaymentMode: calendar.prepaymentMode === "stripe" ? "stripe" : "manual",
-          prepaymentAmountCents: String(calendar.prepaymentAmountCents ?? 0),
+          requiresPrepayment: remotePaymentEnabled ? Boolean(calendar.requiresPrepayment) : false,
+          prepaymentMode: remotePaymentEnabled && calendar.prepaymentMode === "stripe" ? "stripe" : "manual",
+          prepaymentAmountCents: String(remotePaymentEnabled ? calendar.prepaymentAmountCents ?? 0 : 0),
           prepaymentCurrency: calendar.prepaymentCurrency ?? "brl",
-          manualPixKey: calendar.manualPixKey ?? "",
-          manualInstructions: calendar.manualInstructions ?? "",
+          manualPixKey: remotePaymentEnabled ? calendar.manualPixKey ?? "" : "",
+          manualInstructions: remotePaymentEnabled ? calendar.manualInstructions ?? "" : "",
         };
       }
       setDrafts(draftMap);
@@ -122,11 +134,45 @@ export default function CalendarsCard() {
     void refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (!paymentFeatureEnabled) {
+      setLinkRequiresPrepayment(false);
+    }
+  }, [paymentFeatureEnabled]);
+
+  useEffect(() => {
+    if (!configuredBaseUrl && typeof window !== "undefined") {
+      setPublicBaseUrl(window.location.origin);
+    }
+  }, [configuredBaseUrl]);
+
+  const handleCopyLink = async (slug: string) => {
+    const link = computePublicLink(slug);
+    try {
+      if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
+        throw new Error("clipboard_unavailable");
+      }
+      await navigator.clipboard.writeText(link);
+      setCopyFeedback("Link copiado!");
+    } catch {
+      setCopyFeedback("Copie manualmente: " + link);
+    }
+    setTimeout(() => setCopyFeedback(null), 2500);
+  };
+
+  const computePublicLink = (slug: string) => {
+    const base = publicBaseUrl || (typeof window !== "undefined" ? window.location.origin : "");
+    return `${base.replace(/\/$/, "")}/agenda/${slug}`;
+  };
+
   async function linkCalendar() {
     const id = selectedCalendarId;
     if (!id || !description || !whatsappNumber) return; // Validar novos campos
     const summary = available.find((c) => c.id === id)?.summary || id;
-    const amountCents = Math.max(0, Math.round(Number(linkPrepaymentAmount || "0")));
+    const allowsPrepayment = paymentFeatureEnabled;
+    const requiresPrepayment = allowsPrepayment && linkRequiresPrepayment;
+    const amountCents = requiresPrepayment ? Math.max(0, Math.round(Number(linkPrepaymentAmount || "0"))) : 0;
+    const slotDurationValue = Math.max(5, Math.min(8 * 60, Math.round(Number(linkSlotDuration || DEFAULT_SLOT_DURATION)) || DEFAULT_SLOT_DURATION));
     setBusy(true);
     setStatus(null);
     try {
@@ -140,14 +186,14 @@ export default function CalendarsCard() {
             summary,
             description,
             whatsappNumber,
-            services: undefined,
+            slotDurationMinutes: slotDurationValue,
             workHours: undefined,
-            requiresPrepayment: linkRequiresPrepayment,
-            prepaymentMode: linkPrepaymentMode,
+            requiresPrepayment,
+            prepaymentMode: requiresPrepayment ? linkPrepaymentMode : "manual",
             prepaymentAmountCents: amountCents,
             prepaymentCurrency: linkPrepaymentCurrency,
-            manualPixKey: linkManualPixKey,
-            manualInstructions: linkManualInstructions,
+            manualPixKey: requiresPrepayment ? linkManualPixKey : "",
+            manualInstructions: requiresPrepayment ? linkManualInstructions : "",
           },
         }),
       });
@@ -163,6 +209,7 @@ export default function CalendarsCard() {
       setLinkPrepaymentCurrency("brl");
       setLinkManualPixKey("");
       setLinkManualInstructions("");
+      setLinkSlotDuration(String(DEFAULT_SLOT_DURATION));
       void refresh();
     } catch (err) {
       setStatus(err instanceof Error ? err.message : "Erro ao vincular");
@@ -218,7 +265,7 @@ export default function CalendarsCard() {
     return {
       description: "",
       whatsappNumber: "",
-      services: JSON.stringify(DEFAULT_SERVICES, null, 2),
+      slotDurationMinutes: String(DEFAULT_SLOT_DURATION),
       workHours: JSON.stringify(DEFAULT_WORK_HOURS, null, 2),
       requiresPrepayment: false,
       prepaymentMode: "manual",
@@ -244,10 +291,17 @@ export default function CalendarsCard() {
   }
 
   function handleDraftToggle(id: string, field: keyof CalendarDraft, checked: boolean) {
+    if (field === "requiresPrepayment" && !paymentFeatureEnabled) {
+      updateDraft(id, { [field]: false } as Partial<CalendarDraft>);
+      return;
+    }
     updateDraft(id, { [field]: checked } as Partial<CalendarDraft>);
   }
 
   function handleDraftMode(id: string, mode: "manual" | "stripe") {
+    if (!paymentFeatureEnabled) {
+      return;
+    }
     updateDraft(id, { prepaymentMode: mode });
   }
 
@@ -255,25 +309,20 @@ export default function CalendarsCard() {
     const draft = drafts[id];
     if (!draft) return;
 
-    let servicesPayload: unknown;
-    let workHoursPayload: unknown;
-
     const amountValue = Math.max(0, Math.round(Number(draft.prepaymentAmountCents || "0")));
     if (draft.requiresPrepayment && amountValue <= 0) {
       setStatus("Informe um valor em centavos maior que zero para o pré-pagamento.");
       return;
     }
 
-    try {
-      servicesPayload = JSON.parse(draft.services || "[]");
-      if (!Array.isArray(servicesPayload)) {
-        throw new Error("Informe uma lista de serviços em formato JSON válido.");
-      }
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : "JSON de serviços inválido.");
+    const durationValue = Math.round(Number(draft.slotDurationMinutes || DEFAULT_SLOT_DURATION));
+    if (!Number.isFinite(durationValue) || durationValue <= 0) {
+      setStatus("Informe uma duração válida (minutos).");
       return;
     }
+    const sanitizedDuration = Math.max(5, Math.min(8 * 60, durationValue));
 
+    let workHoursPayload: unknown;
     try {
       workHoursPayload = JSON.parse(draft.workHours || "{}");
       if (!workHoursPayload || typeof workHoursPayload !== "object" || Array.isArray(workHoursPayload)) {
@@ -295,7 +344,7 @@ export default function CalendarsCard() {
           id,
           description: draft.description,
           whatsappNumber: draft.whatsappNumber,
-          services: servicesPayload,
+          slotDurationMinutes: sanitizedDuration,
           workHours: workHoursPayload,
           requiresPrepayment: draft.requiresPrepayment,
           prepaymentMode: draft.prepaymentMode,
@@ -318,15 +367,15 @@ export default function CalendarsCard() {
 
   const activeId = account?.activeCalendarId ?? null;
   const lastSwap = account?.lastCalendarSwapAt ?? null;
-  const planId = account?.plan === "pro" ? "pro" : "essencial";
-  const planLimit = ACTIVE_PLANS[planId].googleCalendars;
   const linkedCount = account?.linkedCalendars?.length ?? 0;
   const limitReached = linkedCount >= planLimit;
-  const isPro = planId === "pro";
+  const requiresSwapCooldown = effectivePlanId === "free";
   const now = Date.now();
   const lastSwapMs = lastSwap ? Date.parse(lastSwap) : 0;
   const canSwapNow = !lastSwapMs || now - lastSwapMs >= CALENDAR_SWAP_INTERVAL_MS;
   const nextSwapAt = lastSwapMs ? new Date(lastSwapMs + CALENDAR_SWAP_INTERVAL_MS) : null;
+  const swapBlocked = requiresSwapCooldown && linkedCount >= 1 && !canSwapNow;
+  const requiresPrepaymentSelection = paymentFeatureEnabled && linkRequiresPrepayment;
 
   function formatRemaining(ms: number) {
     if (ms <= 0) return "";
@@ -337,7 +386,6 @@ export default function CalendarsCard() {
     return rem ? `${h}h ${rem}m` : `${h}h`;
   }
 
-  const appBaseUrl = process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.APP_BASE_URL || "";
 
   return (
     <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6">
@@ -383,16 +431,30 @@ export default function CalendarsCard() {
               onChange={(e) => setWhatsappNumber(e.target.value)}
               className="rounded-xl bg-white/5 px-3 py-2 text-sm ring-1 ring-white/10"
             />
+            <input
+              type="number"
+              min={5}
+              placeholder="Duração padrão (minutos)"
+              value={linkSlotDuration}
+              onChange={(e) => setLinkSlotDuration(e.target.value)}
+              className="rounded-xl bg-white/5 px-3 py-2 text-sm ring-1 ring-white/10"
+            />
             <div className="rounded-xl bg-white/5 p-3 text-xs text-slate-200 space-y-3">
               <div className="flex items-center justify-between">
                 <label className="font-medium">Exigir pagamento antecipado?</label>
                 <input
                   type="checkbox"
                   checked={linkRequiresPrepayment}
-                  onChange={(e) => setLinkRequiresPrepayment(e.target.checked)}
+                  onChange={(e) => setLinkRequiresPrepayment(paymentFeatureEnabled && e.target.checked)}
+                  disabled={!paymentFeatureEnabled}
                   className="h-4 w-4 rounded border border-white/20"
                 />
               </div>
+              {!paymentFeatureEnabled && (
+                <p className="rounded-lg bg-white/10 px-3 py-2 text-[11px] text-slate-400">
+                  Disponível a partir do plano {ACTIVE_PLANS.starter.label}.
+                </p>
+              )}
               {linkRequiresPrepayment && (
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div className="space-y-2">
@@ -457,16 +519,20 @@ export default function CalendarsCard() {
                 !selectedCalendarId ||
                 !description ||
                 !whatsappNumber ||
-                (linkRequiresPrepayment && Number(linkPrepaymentAmount || "0") <= 0) ||
-                (isPro ? limitReached : (linkedCount >= 1 && !canSwapNow))
+                (requiresPrepaymentSelection && Number(linkPrepaymentAmount || "0") <= 0) ||
+                Number(linkSlotDuration || "0") <= 0 ||
+                limitReached ||
+                swapBlocked
               }
               className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
             >
-              {isPro
-                ? (limitReached ? "Limite alcançado" : "Vincular selecionada")
-                : (linkedCount > 0
-                    ? (canSwapNow ? "Trocar (1x/dia)" : `Disponível novamente em ${formatRemaining((lastSwapMs + CALENDAR_SWAP_INTERVAL_MS) - now)}`)
-                    : "Vincular selecionada")}
+              {limitReached
+                ? "Limite alcançado"
+                : requiresSwapCooldown && linkedCount > 0 && !canSwapNow
+                  ? `Disponível novamente em ${formatRemaining((lastSwapMs + CALENDAR_SWAP_INTERVAL_MS) - now)}`
+                  : requiresSwapCooldown && linkedCount > 0
+                    ? "Trocar (1x/dia)"
+                    : "Vincular selecionada"}
             </button>
           </div>
         )}
@@ -486,8 +552,14 @@ export default function CalendarsCard() {
                 const draft = drafts[c.id] ?? {
                   description: c.description ?? "",
                   whatsappNumber: c.whatsappNumber ?? "",
-                  services: JSON.stringify(c.services?.length ? c.services : DEFAULT_SERVICES, null, 2),
+                  slotDurationMinutes: String(c.slotDurationMinutes ?? DEFAULT_SLOT_DURATION),
                   workHours: JSON.stringify(c.workHours && Object.keys(c.workHours).length ? c.workHours : DEFAULT_WORK_HOURS, null, 2),
+                  requiresPrepayment: Boolean(c.requiresPrepayment && paymentFeatureEnabled),
+                  prepaymentMode: c.prepaymentMode === "stripe" ? "stripe" : "manual",
+                  prepaymentAmountCents: String(c.prepaymentAmountCents ?? 0),
+                  prepaymentCurrency: c.prepaymentCurrency ?? "brl",
+                  manualPixKey: c.manualPixKey ?? "",
+                  manualInstructions: c.manualInstructions ?? "",
                 };
                 const isActive = activeId === c.id;
                 return (
@@ -497,15 +569,17 @@ export default function CalendarsCard() {
                         <div className="text-xs text-slate-400">Calendário vinculado</div>
                         <div className="text-sm font-semibold text-slate-200">{c.summary}</div>
                         <div className="text-xs text-slate-500 break-all">{c.id}</div>
-                        {c.slug && appBaseUrl && (
-                          <a
-                            href={`${appBaseUrl}/agenda/${c.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-1 inline-flex items-center text-xs text-emerald-300 hover:text-emerald-200"
-                          >
-                            {appBaseUrl.replace(/\/$/, "")}/agenda/{c.slug}
-                          </a>
+                        {c.slug && (
+                          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-emerald-300">
+                            <span className="truncate">{computePublicLink(c.slug)}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyLink(c.slug)}
+                              className="rounded-lg bg-emerald-500/20 px-2 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/30"
+                            >
+                              Copiar link
+                            </button>
+                          </div>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -546,28 +620,31 @@ export default function CalendarsCard() {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1">Serviços (JSON)</label>
-                      <textarea
-                        value={draft.services}
-                        onChange={(e) => handleDraftChange(c.id, "services", e.target.value)}
-                        rows={4}
-                        className="w-full rounded-xl bg-white/10 px-3 py-2 text-xs font-mono ring-1 ring-white/15"
-                        spellCheck={false}
-                      />
-                      <p className="mt-1 text-[10px] text-slate-500">Ex.: {SERVICES_EXAMPLE}</p>
-                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <label className="block text-xs text-slate-300 mb-1">Duração padrão (minutos)</label>
+                        <input
+                          type="number"
+                          min={5}
+                          value={draft.slotDurationMinutes}
+                          onChange={(e) => handleDraftChange(c.id, "slotDurationMinutes", e.target.value)}
+                          className="w-full rounded-xl bg-white/10 px-3 py-2 text-sm ring-1 ring-white/15"
+                          placeholder="60"
+                        />
+                        <p className="mt-1 text-[10px] text-slate-500">Usado para gerar os horários disponíveis.</p>
+                      </div>
 
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1">Horários por dia (JSON)</label>
-                      <textarea
-                        value={draft.workHours}
-                        onChange={(e) => handleDraftChange(c.id, "workHours", e.target.value)}
-                        rows={4}
-                        className="w-full rounded-xl bg-white/10 px-3 py-2 text-xs font-mono ring-1 ring-white/15"
-                        spellCheck={false}
-                      />
-                      <p className="mt-1 text-[10px] text-slate-500">Use horários no formato HH:MM. Ex.: {WORK_HOURS_EXAMPLE}</p>
+                      <div>
+                        <label className="block text-xs text-slate-300 mb-1">Horários por dia (JSON)</label>
+                        <textarea
+                          value={draft.workHours}
+                          onChange={(e) => handleDraftChange(c.id, "workHours", e.target.value)}
+                          rows={4}
+                          className="w-full rounded-xl bg-white/10 px-3 py-2 text-xs font-mono ring-1 ring-white/15"
+                          spellCheck={false}
+                        />
+                        <p className="mt-1 text-[10px] text-slate-500">Use horários no formato HH:MM. Ex.: {WORK_HOURS_EXAMPLE}</p>
+                      </div>
                     </div>
 
                     <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-4 space-y-3">
@@ -577,9 +654,15 @@ export default function CalendarsCard() {
                           type="checkbox"
                           checked={draft.requiresPrepayment}
                           onChange={(e) => handleDraftToggle(c.id, "requiresPrepayment", e.target.checked)}
+                          disabled={!paymentFeatureEnabled}
                           className="h-4 w-4 rounded border border-white/20"
                         />
                       </div>
+                      {!paymentFeatureEnabled && (
+                        <p className="text-[11px] text-slate-400">
+                          Disponível a partir do plano {ACTIVE_PLANS.starter.label}.
+                        </p>
+                      )}
 
                       {draft.requiresPrepayment && (
                         <div className="grid gap-3 sm:grid-cols-2">
@@ -589,6 +672,7 @@ export default function CalendarsCard() {
                               value={draft.prepaymentMode}
                               onChange={(e) => handleDraftMode(c.id, e.target.value as "manual" | "stripe")}
                               className="w-full rounded-lg bg-slate-900/60 px-3 py-2 text-xs ring-1 ring-white/10"
+                              disabled={!paymentFeatureEnabled}
                             >
                               <option value="manual">Manual (Pix/transferência)</option>
                               <option value="stripe">Stripe (cartão)</option>
@@ -602,6 +686,7 @@ export default function CalendarsCard() {
                               value={draft.prepaymentAmountCents}
                               onChange={(e) => handleDraftChange(c.id, "prepaymentAmountCents", e.target.value)}
                               className="w-full rounded-lg bg-slate-900/60 px-3 py-2 text-xs ring-1 ring-white/10"
+                              disabled={!paymentFeatureEnabled}
                             />
                           </div>
                           <div className="space-y-2">
@@ -610,6 +695,7 @@ export default function CalendarsCard() {
                               value={draft.prepaymentCurrency}
                               onChange={(e) => handleDraftChange(c.id, "prepaymentCurrency", e.target.value.toLowerCase())}
                               className="w-full rounded-lg bg-slate-900/60 px-3 py-2 text-xs ring-1 ring-white/10"
+                              disabled={!paymentFeatureEnabled}
                             />
                           </div>
                           {draft.prepaymentMode === "manual" && (
@@ -619,6 +705,7 @@ export default function CalendarsCard() {
                                 value={draft.manualPixKey}
                                 onChange={(e) => handleDraftChange(c.id, "manualPixKey", e.target.value)}
                                 className="w-full rounded-lg bg-slate-900/60 px-3 py-2 text-xs ring-1 ring-white/10"
+                                disabled={!paymentFeatureEnabled}
                               />
                             </div>
                           )}
@@ -634,6 +721,7 @@ export default function CalendarsCard() {
                             rows={3}
                             className="w-full rounded-lg bg-slate-900/60 px-3 py-2 text-xs ring-1 ring-white/10"
                             placeholder="Ex.: Envie o comprovante para confirmar o horário."
+                            disabled={!paymentFeatureEnabled}
                           />
                         </div>
                       )}
@@ -713,6 +801,7 @@ export default function CalendarsCard() {
               </button>
             </div>
           )}
+          {copyFeedback && <p className="mt-2 text-xs text-emerald-300">{copyFeedback}</p>}
           {status && <p className="mt-2 text-sm text-slate-300">{status}</p>}
         </>
       )}

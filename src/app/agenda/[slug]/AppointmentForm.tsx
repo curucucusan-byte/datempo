@@ -20,7 +20,6 @@ type AppointmentResponse = {
   minutes?: number;
   ics?: string;
   error?: string;
-  service?: string;
   timeZone?: string;
 };
 
@@ -191,7 +190,6 @@ export default function AppointmentForm({ slug }: { slug: string }) {
               })}
             </p>
           )}
-          {result.service && <p>Serviço: {result.service}</p>}
           {result.payment?.status === "pending" ? (
             <div className="space-y-1">
               <p>

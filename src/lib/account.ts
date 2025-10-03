@@ -16,18 +16,31 @@ export type ReminderSettings = {
   windowMinutes: number;
 };
 
+export type AccountUsage = {
+  appointmentsMonth: number;
+  whatsAppMessagesMonth: number;
+};
+
+export type AccountBilling = {
+  overageWhatsAppBRL: number;
+};
+
 export type Account = {
   uid: string;
   email?: string | null;
   plan: PlanId;
   status: "active" | "trial" | "past_due" | "canceled";
   trialEndsAt?: string | null; // ISO
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
   reminders: ReminderSettings;
   linkedCalendars: LinkedCalendar[]; // Usar o novo tipo LinkedCalendar
   activeCalendarId?: string | null;
   lastCalendarSwapAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  usage: AccountUsage;
+  billing: AccountBilling;
 };
 
 const COLLECTION = "accounts";
@@ -40,9 +53,15 @@ function addDays(days: number) {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 }
 
+function addMonths(base: Date, months: number) {
+  const clone = new Date(base);
+  clone.setMonth(clone.getMonth() + months);
+  return clone;
+}
+
 function defaultRemindersForPlan(plan: PlanId): ReminderSettings {
   const baseMinutes = 120;
-  if (plan === "pro") {
+  if (isActivePlan(plan) && ACTIVE_PLANS[plan].limits.maxAutoRemindersPerAppointment > 0) {
     return { enabled: true, windowMinutes: baseMinutes };
   }
   return { enabled: false, windowMinutes: baseMinutes };
@@ -51,8 +70,8 @@ function defaultRemindersForPlan(plan: PlanId): ReminderSettings {
 function sanitizeReminders(plan: PlanId, value: ReminderSettings | undefined): ReminderSettings {
   const base = value ?? defaultRemindersForPlan(plan);
   const minutes = Number.isFinite(base.windowMinutes) ? Math.max(5, Math.round(base.windowMinutes)) : 120;
-  if (plan !== "pro") {
-    return { enabled: Boolean(base.enabled), windowMinutes: minutes }; // Alterado para manter enabled se for false
+  if (!isActivePlan(plan) || ACTIVE_PLANS[plan].limits.maxAutoRemindersPerAppointment === 0) {
+    return { enabled: false, windowMinutes: minutes };
   }
   return { enabled: Boolean(base.enabled), windowMinutes: minutes };
 }
@@ -88,13 +107,22 @@ function applyPlanConstraints(account: Account, plan: PlanId) {
 
 function normalizePlan(plan: unknown): PlanId {
   if (plan === "inactive") return "inactive";
-  if (plan === "essencial" || plan === "pro") return plan;
+  if (plan === "inactive") return "inactive";
+  if (plan === "free" || plan === "starter" || plan === "pro") return plan;
+  if (plan === "essencial") return "free";
   return "inactive";
 }
 
 function normalizeAccount(data: Account): Account {
   const plan = normalizePlan(data.plan);
   const reminders = sanitizeReminders(plan, data.reminders);
+  const usage: AccountUsage = {
+    appointmentsMonth: data.usage?.appointmentsMonth ?? 0,
+    whatsAppMessagesMonth: data.usage?.whatsAppMessagesMonth ?? 0,
+  };
+  const billing: AccountBilling = {
+    overageWhatsAppBRL: data.billing?.overageWhatsAppBRL ?? 0,
+  };
   return {
     ...data,
     plan,
@@ -102,6 +130,10 @@ function normalizeAccount(data: Account): Account {
     linkedCalendars: Array.isArray(data.linkedCalendars) ? data.linkedCalendars : [],
     activeCalendarId: data.activeCalendarId ?? null,
     lastCalendarSwapAt: data.lastCalendarSwapAt ?? null,
+    currentPeriodStart: data.currentPeriodStart ?? null,
+    currentPeriodEnd: data.currentPeriodEnd ?? null,
+    usage,
+    billing,
   };
 }
 
@@ -116,11 +148,11 @@ async function maybeExpireTrial(account: Account): Promise<Account> {
   const db = getDb();
   const updates: Partial<Account> = {
     status: "active",
-    plan: "essencial",
+    plan: "free",
     updatedAt: nowIso(),
   };
   await db.collection(COLLECTION).doc(account.uid).set(updates, { merge: true });
-  const constrained = applyPlanConstraints({ ...account, ...updates }, "essencial");
+  const constrained = applyPlanConstraints({ ...account, ...updates }, "free");
   return normalizeAccount({ ...account, ...updates, ...constrained });
 }
 
@@ -139,18 +171,29 @@ export async function ensureAccount(uid: string, email?: string | null): Promise
   const plan: ActivePlanId = DEFAULT_ACTIVE_PLAN_ID;
   const now = nowIso();
   const trialEnds = addDays(ACTIVE_PLANS[plan].trialDays);
+  const periodStart = now;
+  const periodEnd = addMonths(new Date(), 1).toISOString();
   const account: Account = {
     uid,
     email: email ?? null,
     plan,
     status: "trial",
     trialEndsAt: trialEnds,
+     currentPeriodStart: periodStart,
+     currentPeriodEnd: periodEnd,
     reminders: defaultRemindersForPlan(plan),
     linkedCalendars: [], // Inicializar como array vazio de LinkedCalendar
     activeCalendarId: null,
     lastCalendarSwapAt: null,
     createdAt: now,
     updatedAt: now,
+    usage: {
+      appointmentsMonth: 0,
+      whatsAppMessagesMonth: 0,
+    },
+    billing: {
+      overageWhatsAppBRL: 0,
+    },
   };
   const db = getDb();
   await db.collection(COLLECTION).doc(uid).set(account);
@@ -172,7 +215,8 @@ export function getReminderSettings(account: Account): ReminderSettings {
 
 export function canSendReminders(account: Account): boolean {
   if (!isAccountActive(account)) return false;
-  if (account.plan !== "pro") return false;
+  if (!isActivePlan(account.plan)) return false;
+  if (ACTIVE_PLANS[account.plan].limits.maxAutoRemindersPerAppointment === 0) return false;
   return getReminderSettings(account).enabled;
 }
 
@@ -185,6 +229,10 @@ export async function updateAccount(
     reminders?: Partial<ReminderSettings>;
     linkedCalendars?: LinkedCalendar[]; // Permitir atualização de linkedCalendars
     activeCalendarId?: string | null;
+    currentPeriodStart?: string | null;
+    currentPeriodEnd?: string | null;
+    usage?: Partial<AccountUsage>;
+    billing?: Partial<AccountBilling>;
   }
 ): Promise<Account> {
   const current = await ensureAccount(uid, null);
@@ -202,6 +250,14 @@ export async function updateAccount(
     payload.trialEndsAt = updates.trialEndsAt;
   }
 
+  if (typeof updates.currentPeriodStart !== "undefined") {
+    payload.currentPeriodStart = updates.currentPeriodStart;
+  }
+
+  if (typeof updates.currentPeriodEnd !== "undefined") {
+    payload.currentPeriodEnd = updates.currentPeriodEnd;
+  }
+
   if (typeof updates.reminders !== "undefined") {
     const baseAccount = normalizeAccount({ ...current, plan: nextPlan } as Account);
     const merged: ReminderSettings = {
@@ -217,6 +273,19 @@ export async function updateAccount(
 
   if (typeof updates.activeCalendarId !== "undefined") {
     payload.activeCalendarId = updates.activeCalendarId;
+  }
+
+  if (typeof updates.usage !== "undefined") {
+    payload.usage = {
+      appointmentsMonth: updates.usage.appointmentsMonth ?? current.usage.appointmentsMonth,
+      whatsAppMessagesMonth: updates.usage.whatsAppMessagesMonth ?? current.usage.whatsAppMessagesMonth,
+    };
+  }
+
+  if (typeof updates.billing !== "undefined") {
+    payload.billing = {
+      overageWhatsAppBRL: updates.billing.overageWhatsAppBRL ?? current.billing.overageWhatsAppBRL,
+    };
   }
 
   if (updates.plan && isActivePlan(nextPlan) && nextStatus === "trial" && !updates.trialEndsAt) {

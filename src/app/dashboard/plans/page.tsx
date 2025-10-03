@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { ensureAccount } from "@/lib/account";
 import { getAuthenticatedUser } from "@/lib/session";
-import { ACTIVE_PLANS, getPlanDetails } from "@/lib/plans";
+import { ACTIVE_PLANS, getPlanDetails, type ActivePlanId } from "@/lib/plans";
 import { listPaymentsByUid, listSubscriptionsByUid } from "@/lib/payments";
 import PaymentButtons from "./PaymentButtons";
 
@@ -32,6 +32,15 @@ export default async function PlansPage() {
   const formatCurrency = (amount: number, currency = "brl") =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: currency.toUpperCase() }).format(amount / 100);
 
+  const resolvePlanLabel = (value: string | null | undefined) => {
+    if (!value) return "—";
+    if (value in ACTIVE_PLANS) {
+      return ACTIVE_PLANS[value as ActivePlanId].label;
+    }
+    if (value === "essencial") return `${ACTIVE_PLANS.free.label} (legado)`;
+    return value;
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8">
@@ -57,24 +66,34 @@ export default async function PlansPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 pb-16 space-y-12">
-        <div className="grid gap-6 lg:grid-cols-2">
-          {Object.values(ACTIVE_PLANS).map((plan) => (
+        <div className="grid gap-6 lg:grid-cols-3">
+          {["free", "starter", "pro"].map((planKey) => {
+            const plan = ACTIVE_PLANS[planKey as keyof typeof ACTIVE_PLANS];
+            const isCurrent = account.plan === plan.id;
+            const isPaidPlan = plan.monthlyPrice > 0;
+            const highlight = plan.id === "starter";
+
+            return (
             <div
               key={plan.id}
               className={`rounded-3xl border p-6 ${
-                plan.id === "pro"
+                highlight
                   ? "border-emerald-400/60 bg-emerald-500/10"
                   : "border-white/10 bg-slate-900/60"
               }`}
             >
               <div className="flex items-baseline justify-between">
                 <h2 className="text-xl font-semibold">{plan.label}</h2>
-                {plan.id === "pro" && <span className="text-xs text-emerald-300">Completo</span>}
+                {highlight && <span className="text-xs text-emerald-300">Recomendado</span>}
               </div>
               <div className="mt-3 text-2xl font-bold">{plan.priceDisplay}</div>
-              <p className="mt-2 text-sm text-slate-300">
-                Teste por {plan.trialDays} dia(s), sem custo.
-              </p>
+              {plan.trialDays > 0 ? (
+                <p className="mt-2 text-sm text-slate-300">
+                  {plan.trialDays} dia(s) para testar sem custo.
+                </p>
+              ) : (
+                <p className="mt-2 text-sm text-slate-400">Plano permanente sem mensalidade.</p>
+              )}
               <ul className="mt-4 space-y-2 text-sm text-slate-200">
                 {plan.bullets.map((perk) => (
                   <li key={perk} className="flex items-center gap-2">
@@ -89,20 +108,21 @@ export default async function PlansPage() {
                 ))}
               </ul>
               <div className="mt-6">
-                {account.plan === plan.id ? (
+                {isCurrent ? (
                   <div className="text-center py-3 text-emerald-300 font-medium">
                     ✓ Plano Atual
                   </div>
-                ) : plan.monthlyPrice === 0 ? (
+                ) : !isPaidPlan ? (
                   <div className="text-center py-3 text-slate-300">
                     Incluído por padrão — basta continuar usando.
                   </div>
                 ) : (
-                  <PaymentButtons plan={plan.id} price={plan.monthlyPrice} />
+                  <PaymentButtons plan={plan.id as Exclude<ActivePlanId, "free">} price={plan.monthlyPrice} />
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         <section className="space-y-4">
@@ -128,7 +148,7 @@ export default async function PlansPage() {
                   subscriptions.map((subscription) => (
                     <tr key={subscription.id} className="border-t border-white/5">
                       <td className="px-3 py-3 text-slate-200">{subscription.id}</td>
-                      <td className="px-3 py-3 text-slate-300">{subscription.plan}</td>
+                      <td className="px-3 py-3 text-slate-300">{resolvePlanLabel(subscription.plan)}</td>
                       <td className="px-3 py-3">
                         <span className="rounded-full bg-white/10 px-2 py-1 text-xs text-slate-200">
                           {subscription.status}
@@ -171,7 +191,7 @@ export default async function PlansPage() {
                       <td className="px-3 py-3 text-emerald-200">{payment.id}</td>
                       <td className="px-3 py-3 text-slate-300">{formatDateTime(payment.createdAt)}</td>
                       <td className="px-3 py-3 text-slate-200">{formatCurrency(payment.amount, payment.currency)}</td>
-                      <td className="px-3 py-3 text-slate-300">{payment.plan}</td>
+                      <td className="px-3 py-3 text-slate-300">{resolvePlanLabel(payment.plan)}</td>
                       <td className="px-3 py-3">
                         <span className="rounded-full bg-white/10 px-2 py-1 text-xs text-slate-200">
                           {payment.status}

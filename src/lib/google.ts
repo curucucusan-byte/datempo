@@ -10,11 +10,6 @@ const SCOPES = [
   "https://www.googleapis.com/auth/userinfo.email",
 ];
 
-export type CalendarService = {
-  name: string;
-  minutes: number;
-};
-
 export type CalendarWorkHours = Record<string, string[]>;
 
 const DEFAULT_CALENDAR_TIMEZONE = process.env.DEFAULT_CALENDAR_TIMEZONE || "America/Sao_Paulo";
@@ -109,7 +104,7 @@ export type LinkedCalendar = {
   description: string;
   whatsappNumber: string;
   active: boolean;
-  services?: CalendarService[];
+  slotDurationMinutes?: number | null;
   workHours?: CalendarWorkHours;
   requiresPrepayment?: boolean;
   prepaymentMode?: "manual" | "stripe";

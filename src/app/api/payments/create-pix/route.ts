@@ -19,6 +19,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Plano inválido." }, { status: 400 });
     }
 
+    if (plan === "free") {
+      return NextResponse.json({ error: "Plano gratuito não requer pagamento." }, { status: 400 });
+    }
+
     // Verificar se o usuário pode fazer um novo pagamento Pix
     const canMakePayment = await canUserMakePixPayment(user.uid);
     if (!canMakePayment) {

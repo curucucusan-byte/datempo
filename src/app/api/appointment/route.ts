@@ -88,7 +88,6 @@ type Body = {
   customerName: string;
   customerPhone: string;
   datetime: string;
-  service?: string;
   durationMinutes?: number;
   timezone?: string;
 };
@@ -142,8 +141,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "WhatsApp inválido. Use +55DDDNÚMERO (ex.: +5553999999999)." }, { status: 400 });
     }
 
-    const serviceName = (body.service ?? "").trim();
-    const serviceLabel = serviceName || "Atendimento";
     const minutes = clampDurationMinutes(body.durationMinutes, 60);
     const timeZone = isValidTimeZone(body.timezone) ? body.timezone : DEFAULT_TIME_ZONE;
 
@@ -192,10 +189,9 @@ export async function POST(req: Request) {
     }
 
     // ---------- Criar evento no Google Calendar ----------
-    const eventSummary = `${serviceLabel} — ${body.customerName}`;
+    const eventSummary = `Atendimento — ${body.customerName}`;
     const eventDescription = [
       `Cliente: ${body.customerName}`,
-      `Serviço: ${serviceLabel}`,
       `WhatsApp: ${body.customerPhone}`,
       `Agenda: ${linkedCalendar.description || linkedCalendar.summary}`,
       linkedCalendar.slug
@@ -243,7 +239,6 @@ export async function POST(req: Request) {
       `✅ *ZapAgenda* — Agendamento registrado!`,
       `Agenda: *${linkedCalendar.description || linkedCalendar.summary}*`,
       `Cliente: *${body.customerName}*`,
-      `Serviço: *${serviceLabel}*`,
       `Data/Hora: *${humanDate}*`,
     ];
     if (requiresPrepayment && paymentInstructionsText) {
@@ -271,7 +266,6 @@ export async function POST(req: Request) {
         message:
           `🧾 Novo agendamento — ${linkedCalendar.description || linkedCalendar.summary}\n` +
           `Cliente: ${body.customerName}\n` +
-          `Serviço: ${serviceLabel}\n` +
           `Quando: ${humanDate}\n` +
           (requiresPrepayment ? `Pagamento: ${paymentAmountLocalized} (${prepaymentMode === "manual" ? "manual" : "online"})\n` : "") +
           `Contato do cliente: ${phone}` +
@@ -285,7 +279,6 @@ export async function POST(req: Request) {
       slug: body.slug,
       customerName: body.customerName,
       customerPhone: phone,
-      service: serviceLabel,
       startISO: start.toISOString(),
       endISO: end.toISOString(),
       ownerUid: linkedCalendar.ownerUid ?? null,
@@ -310,7 +303,6 @@ export async function POST(req: Request) {
       id: appt.id,
       when: start.toISOString(),
       minutes,
-      service: serviceLabel,
       timeZone,
       ics: icsUrl,
       payment: requiresPrepayment

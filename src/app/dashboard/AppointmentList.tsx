@@ -7,7 +7,6 @@ type Appointment = {
   slug: string;
   customerName: string;
   customerPhone: string;
-  service: string;
   startISO: string;
   endISO: string;
   ownerUid?: string | null;
@@ -44,7 +43,6 @@ export default function AppointmentList() {
   const [slugFilter, setSlugFilter] = useState("");
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
-  const [serviceFilter, setServiceFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
   const load = useMemo(() => {
@@ -81,28 +79,21 @@ export default function AppointmentList() {
     return Array.from(set.values()).sort();
   }, [appointments]);
 
-  const serviceOptions = useMemo(() => {
-    const set = new Set(appointments.map((apt) => apt.service));
-    return Array.from(set.values()).sort();
-  }, [appointments]);
-
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     return appointments.filter((apt) => {
-      if (serviceFilter && apt.service !== serviceFilter) return false;
       if (term) {
         const haystack = `${apt.customerName} ${apt.customerPhone}`.toLowerCase();
         if (!haystack.includes(term)) return false;
       }
       return true;
     });
-  }, [appointments, serviceFilter, searchTerm]);
+  }, [appointments, searchTerm]);
 
   const resetFilters = () => {
     setSlugFilter("");
     setSince("");
     setUntil("");
-    setServiceFilter("");
     setSearchTerm("");
   };
 
@@ -111,7 +102,7 @@ export default function AppointmentList() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <label className="block text-sm text-slate-300 mb-1" htmlFor="slug-filter">
-            Profissional
+            Agenda
           </label>
           <select
             id="slug-filter"
@@ -123,25 +114,6 @@ export default function AppointmentList() {
             {slugOptions.map((slug) => (
               <option key={slug} value={slug}>
                 {slug}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm text-slate-300 mb-1" htmlFor="service-filter">
-            Serviço
-          </label>
-          <select
-            id="service-filter"
-            value={serviceFilter}
-            onChange={(e) => setServiceFilter(e.target.value)}
-            className="w-full rounded-xl bg-white/5 px-4 py-2 text-sm outline-none ring-1 ring-white/10"
-          >
-            <option value="">Todos</option>
-            {serviceOptions.map((service) => (
-              <option key={service} value={service}>
-                {service}
               </option>
             ))}
           </select>
@@ -212,9 +184,8 @@ export default function AppointmentList() {
           <thead className="bg-white/5 text-xs uppercase tracking-wide text-slate-300">
             <tr>
               <th className="px-4 py-3">Horário</th>
-              <th className="px-4 py-3">Profissional</th>
+              <th className="px-4 py-3">Agenda</th>
               <th className="px-4 py-3">Cliente</th>
-              <th className="px-4 py-3">Serviço</th>
               <th className="px-4 py-3">Contato</th>
               <th className="px-4 py-3">Pagamento</th>
               <th className="px-4 py-3">Criado em</th>
@@ -224,7 +195,7 @@ export default function AppointmentList() {
           <tbody>
             {filtered.length === 0 && !loading ? (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-6 text-center text-slate-400">
                   Nenhum agendamento encontrado.
                 </td>
               </tr>
@@ -233,8 +204,7 @@ export default function AppointmentList() {
                 <tr key={apt.id} className="border-b border-white/5">
                   <td className="px-4 py-3 text-slate-200">{formatDate(apt.startISO)}</td>
                   <td className="px-4 py-3 text-slate-300">{apt.slug}</td>
-                  <td className="px-4 py-3 text-slate-200">{apt.customerName}</td>
-                  <td className="px-4 py-3 text-slate-300">{apt.service}</td>
+                <td className="px-4 py-3 text-slate-200">{apt.customerName}</td>
                   <td className="px-4 py-3 text-slate-300">{apt.customerPhone}</td>
                   <td className="px-4 py-3 text-slate-300">
                     {apt.paymentStatus ? (

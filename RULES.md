@@ -3,7 +3,7 @@
 ## 1. Entidades Centrais e Fontes de Dados
 - **Account** (`src/lib/account.ts`): guarda o estado da assinatura do SaaS, preferências de lembrete, lista de `linkedCalendars`, além de `activeCalendarId` e `lastCalendarSwapAt`. Contas novas começam no plano `pro` em modo teste de 3 dias (`DEFAULT_ACTIVE_PLAN_ID`).
 - **LinkedCalendar** (`src/lib/google.ts`, `src/app/api/account/google/route.ts`): espelha o vínculo com um calendário Google contendo `{ id, summary, ownerUid, slug, description, whatsappNumber, active }`.
-- **Appointment** (`src/lib/store.ts`): agenda gravada no Firestore (coleção `appointments`) ou no arquivo local `data/appointments.json`, com `{ id, slug, customerName, customerPhone, service, startISO, endISO, ownerUid?, createdAt, reminderSentAt? }`. Para pré-pagamento, ampliar com campos `paymentRequired`, `paymentStatus`, `paymentProvider`, `paymentIntentId`, valores (`paymentAmount`, `paymentCurrency`) e registros de `paidAt`/`refundAt`.
+- **Appointment** (`src/lib/store.ts`): agenda gravada no Firestore (coleção `appointments`) ou no arquivo local `data/appointments.json`, com `{ id, slug, customerName, customerPhone, startISO, endISO, ownerUid?, createdAt, reminderSentAt? }`. Para pré-pagamento, ampliar com campos `paymentRequired`, `paymentStatus`, `paymentProvider`, `paymentIntentId`, valores (`paymentAmount`, `paymentCurrency`) e registros de `paidAt`/`refundAt`.
 - **Payments & Subscriptions** (`src/lib/payments.ts`): coleções em Firestore separadas para `payments` (Pix avulso) e `subscriptions` (cartão) via Stripe. Cobre apenas a cobrança do ZapAgenda; para pré-pagamento de clientes finais, `Appointment` armazena identificadores do PSP (`paymentIntentId`, `paymentStatus`).
 - **Sessions & Auth** (`src/lib/session.ts`): gerencia cookies de sessão Firebase (`zapagenda_session`) válidos por 5 dias.
 - **Leads** (`src/app/api/lead/route.ts`): captação opcional armazenada no Firestore ou no arquivo `leads.dev.json`.
@@ -150,7 +150,7 @@ AttemptLog (auditoria dos bloqueios do guard):
 - OAuth (`/api/google/oauth/start`) exige usuário autenticado.
 - Callback troca o código por tokens (`googleTokens`) e, se não houver agendas, vincula automaticamente o calendário primário com slug único, descrição padrão e WhatsApp de fallback (`OWNER_DEFAULT_PHONE`).
 - Cartão "Minha agenda" (`CalendarsCard`) lista calendários, permite vincular/atualizar/remover/ativar com limites por plano e cooldown de 24h (`CALENDAR_SWAP_INTERVAL_MS`).
-- `createGoogleCalendarEvent` cria eventos com fuso `DEFAULT_CALENDAR_TIMEZONE` (ou override) e lembretes manuais (email 24h + popup 10 min). O texto do evento inclui cliente, serviço, WhatsApp, descrição da agenda e link público.
+- `createGoogleCalendarEvent` cria eventos com fuso `DEFAULT_CALENDAR_TIMEZONE` (ou override) e lembretes manuais (email 24h + popup 10 min). O texto do evento inclui cliente, WhatsApp, descrição da agenda e link público.
 
 ## 5. Fluxo Público de Agendamento + Confirmação via WhatsApp
 - Remover o fluxo legado `/[slug]` e rotas associadas (`/api/professional*`). O único caminho suportado passa por `/agenda/[slug]` + `AppointmentForm`.
@@ -162,7 +162,7 @@ AttemptLog (auditoria dos bloqueios do guard):
 2. Webhook `/api/webhooks/wa` valida `hub.verify_token`, normaliza o payload (`entry[].changes[].value.messages[0]`), extrai `token` via regex e confere se está dentro de `holdTTL`.
 3. Antes de confirmar, revalida conflitos: se já existir evento/compromisso, responde orientando a remarcar.
 4. Atualiza o Google Calendar (`status="confirmed"`, `extendedProperties.private.token`) e grava `googleEventId`.
-5. Atualiza o `Appointment` para `CONFIRMED`, preenche `consentAt` e envia a mensagem consolidada (serviço+data local+links) somente se a sessão estiver válida pelo guard 22h (inbound ≤ 22h).
+5. Atualiza o `Appointment` para `CONFIRMED`, preenche `consentAt` e envia a mensagem consolidada (data local + links) somente se a sessão estiver válida pelo guard 22h (inbound ≤ 22h).
 
 ### 5.2 Modo manual (`confirmationMode=manual_by_owner`)
 1. Passos 1–2 iguais ao modo automático.
@@ -239,7 +239,7 @@ Ordem de checagem:
 
 ## 9. Pendências Conhecidas
 1. **Módulo de profissionais** removido mas ainda referenciado (rotas/cron/landing legacy quebrados).
-2. **Disponibilidade** fixa em 60 min; ignora duração por serviço e horários de trabalho.
+2. **Disponibilidade** fixa em 60 min caso o calendário não defina `slotDurationMinutes`.
 3. **UX de pagamento** incompleta (cartão/Pix) e ausência de histórico.
 4. **Participantes Google**: só email do dono; cliente não recebe convite.
 5. **Slug de agenda**: auto-link pode colidir; uso de random fallback limitado.
@@ -284,8 +284,8 @@ Registro mínimo de faturamento (exemplo):
 - Retenção de logs por período razoável; anonimização quando aplicável; nenhum dado sensível de cartão deve ser armazenado.
 
 ## 10. Checklist para Fechar o Fluxo Atual
-- [ ] Recriar metadados de profissional/serviço baseados nas agendas vinculadas.
-- [ ] Ajustar `/api/availability` e formulários para usar duração por serviço e janelas de trabalho.
+- [ ] Permitir configurar `slotDurationMinutes` e `workHours` diretamente pelo painel (já em andamento).
+- [ ] Ajustar `/api/availability` e formulários para usar `slotDurationMinutes` e janelas de trabalho.
 - [ ] Implementar corretamente o fluxo de pagamento SaaS (Stripe Elements/Checkout + Pix page) e exibir histórico.
 - [ ] Dar visibilidade aos pagamentos em dashboards (filtros, exportação).
 - [ ] Concluir migração para WhatsApp Cloud API (env vars, payloads, webhook `hub.verify_token`).
@@ -311,7 +311,8 @@ paymentProvider?: "stripe" | "mercadopago" | "pagarme" | "other";
 paymentWebhookSecret?: string;
 paymentWebhookTimeoutMinutes?: number; // default 15
 
-// Service (opcional, para granularidade por serviço)
+// LinkedCalendar (por agenda)
+slotDurationMinutes?: number;
 paymentAtBookingEnabled?: boolean;
 paymentProvider?: "stripe" | "mercadopago" | "pagarme" | "other";
 paymentCurrency?: string; // default BRL
@@ -355,7 +356,7 @@ refundAmount?: number; // centavos
 - **Mensageria**: se houver sessão válida (guard 22h), enviar mensagem de confirmação pós-pagamento. Sem sessão válida, não enviar nada por WhatsApp.
 
 ### 11.1 Integração com Planos
-- Se `features.paymentAtBooking == true` no plano do tenant e o serviço estiver com a opção ativada, confirmar automaticamente após `paid|approved`.
+- Se `features.paymentAtBooking == true` no plano do tenant e a agenda estiver com a opção ativada, confirmar automaticamente após `paid|approved`.
 - Mensagem de confirmação no WhatsApp somente se o guard 22h permitir; aprovação manual do Provider continua opcional e idempotente.
 
 ### Segurança e Compliance

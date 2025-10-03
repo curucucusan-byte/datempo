@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { ensureAccount, getReminderSettings, isAccountActive } from "@/lib/account";
 import { getAuthenticatedUser } from "@/lib/session";
-import { ACTIVE_PLANS, getPlanDetails } from "@/lib/plans";
+import { ACTIVE_PLANS, getPlanDetails, isActivePlan } from "@/lib/plans";
 
 import Link from "next/link";
 
@@ -29,6 +29,10 @@ export default async function DashboardPage({
   const planDetails = getPlanDetails(account.plan);
   const reminders = getReminderSettings(account);
   const accountActive = isAccountActive(account);
+  const planLimits = isActivePlan(account.plan) ? ACTIVE_PLANS[account.plan].limits : null;
+  const requiredPlanLabel = ACTIVE_PLANS.starter.label;
+  const maxAutoReminders = planLimits?.maxAutoRemindersPerAppointment ?? 0;
+  const canEditReminders = accountActive && maxAutoReminders > 0;
 
   const trialWarning =
     account.status === "trial" && account.trialEndsAt
@@ -115,10 +119,11 @@ export default async function DashboardPage({
             <ReminderSettings
               initialEnabled={reminders.enabled}
               initialWindowMinutes={reminders.windowMinutes}
-              canEdit={accountActive && account.plan === "pro"}
+              canEdit={canEditReminders}
               planLabel={planDetails?.label ?? "Inativo"}
               planId={account.plan}
-              availablePlanLabel={ACTIVE_PLANS.pro.label}
+              requiredPlanLabel={requiredPlanLabel}
+              maxAutoReminders={maxAutoReminders}
             />
 
             <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6">

@@ -1,11 +1,11 @@
-import ClientPage from "./ClientPage";
+import { redirect } from "next/navigation";
 
-type Params = { slug: string };
-type PageProps = {
-  params: Promise<Params>;
+type Params = {
+  params: {
+    slug: string;
+  };
 };
 
-export default async function Page({ params }: PageProps) {
-  const { slug } = await params;
-  return <ClientPage slug={slug} />;
+export default function LegacyAgendaRedirect({ params }: Params) {
+  redirect(`/agenda/${params.slug}`);
 }

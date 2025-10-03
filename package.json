@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "cron:reminder": "node scripts/trigger-reminder.mjs",
-    "seed:professionals": "node scripts/seed-professionals.mjs"
+    "cron:reminder": "node scripts/trigger-reminder.mjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^5.0.0",

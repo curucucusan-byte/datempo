@@ -54,7 +54,7 @@ function addMonths(date: Date, months: number): Date {
 
 async function downgradeAccountToFree(uid: string) {
   await updateAccount(uid, {
-    plan: "essencial",
+    plan: "free",
     status: "active",
   });
 }
@@ -67,9 +67,13 @@ export async function createCreditCardSubscription(
 ): Promise<{ subscription: Subscription; clientSecret: string }> {
   const db = getDb();
   const planDetails = ACTIVE_PLANS[plan];
-  
+
   if (!planDetails) {
     throw new Error("Plano inválido.");
+  }
+
+  if (plan === "free") {
+    throw new Error("Plano gratuito não requer assinatura paga.");
   }
 
   // Criar ou recuperar cliente Stripe
@@ -136,9 +140,13 @@ export async function createPixPayment(
 ): Promise<{ payment: PaymentRecord; clientSecret: string }> {
   const db = getDb();
   const planDetails = ACTIVE_PLANS[plan];
-  
+
   if (!planDetails) {
     throw new Error("Plano inválido.");
+  }
+
+  if (plan === "free") {
+    throw new Error("Plano gratuito não requer pagamento Pix.");
   }
 
   // Criar ou recuperar cliente Stripe

@@ -2,7 +2,6 @@
 
 import { NextResponse } from "next/server";
 
-// import { getProfessional, resolveProfessional, getServiceMinutes } from "@/lib/professionals"; // Removido
 import { loadAppointments } from "@/lib/store";
 import { freeBusyForDate, getLinkedCalendarBySlug } from "@/lib/google"; // Adicionado getLinkedCalendarBySlug
 
@@ -57,8 +56,6 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get("slug");
   const date = searchParams.get("date");
-  const serviceParam = searchParams.get("service") ?? undefined;
-
   if (!slug) {
     return NextResponse.json<ErrorResult>(
       { ok: false, error: "Informe o slug da agenda (?slug=)." }, // Mensagem atualizada
@@ -81,22 +78,12 @@ export async function GET(req: Request) {
     );
   }
 
-  // let professional = getProfessional(slug); // Removido
-  // if (!professional) { // Removido
-  //   professional = await resolveProfessional(slug); // Removido
-  // } // Removido
-  // if (!professional) { // Removido
-  //   return NextResponse.json<ErrorResult>({ ok: false, error: "Profissional não encontrado." }, { status: 404 }); // Removido
-  // } // Removido
-
   const linkedCalendar = await getLinkedCalendarBySlug(slug); // Usar nova função
   if (!linkedCalendar) {
     return NextResponse.json<ErrorResult>({ ok: false, error: "Agenda não encontrada." }, { status: 404 });
   }
 
-  const services = Array.isArray(linkedCalendar.services) ? linkedCalendar.services : [];
-  const selectedService = services.find((service) => service.name === serviceParam?.trim());
-  const slotMinutes = Math.max(5, Math.min(8 * 60, selectedService?.minutes ?? services[0]?.minutes ?? 60));
+  const slotMinutes = Math.max(5, Math.min(8 * 60, linkedCalendar.slotDurationMinutes ?? 60));
 
   // Definição de slots base: preferimos Google Calendar.
   const ownerUid = linkedCalendar.ownerUid ?? null; // Usar ownerUid da agenda

@@ -8,7 +8,7 @@ import { ensureAccount } from "@/lib/account";
 import { getDb } from "@/lib/firebaseAdmin";
 // import type { Professional } from "@/lib/professionals"; // Removido
 
-const DEFAULT_SERVICES = [{ name: "Atendimento padrão", minutes: 60 }];
+const DEFAULT_SLOT_DURATION = 60;
 const DEFAULT_WORK_HOURS = {
   monday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
   tuesday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
@@ -80,7 +80,7 @@ export async function GET(req: Request) {
           description: `Agenda de ${primary.summary}`, // Descrição padrão
           whatsappNumber: process.env.OWNER_DEFAULT_PHONE || "", // Número de WhatsApp padrão
           active: true,
-          services: DEFAULT_SERVICES,
+          slotDurationMinutes: DEFAULT_SLOT_DURATION,
           workHours: DEFAULT_WORK_HOURS,
           requiresPrepayment: DEFAULT_PREPAYMENT.requiresPrepayment,
           prepaymentMode: DEFAULT_PREPAYMENT.prepaymentMode,

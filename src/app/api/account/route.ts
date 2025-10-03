@@ -40,7 +40,8 @@ export async function POST(req: Request) {
 
   if (
     typeof body.plan === "string" &&
-    body.plan !== "essencial" &&
+    body.plan !== "free" &&
+    body.plan !== "starter" &&
     body.plan !== "pro" &&
     body.plan !== "inactive"
   ) {

@@ -19,6 +19,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Plano inválido." }, { status: 400 });
     }
 
+    if (plan === "free") {
+      return NextResponse.json({ error: "Plano gratuito não requer assinatura." }, { status: 400 });
+    }
+
     const result = await createCreditCardSubscription(user.uid, user.email, plan);
 
     return NextResponse.json({

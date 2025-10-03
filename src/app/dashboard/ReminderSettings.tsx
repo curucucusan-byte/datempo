@@ -8,7 +8,8 @@ type ReminderSettingsProps = {
   canEdit: boolean;
   planLabel: string;
   planId: string;
-  availablePlanLabel: string;
+  requiredPlanLabel: string;
+  maxAutoReminders: number;
 };
 
 export default function ReminderSettings({
@@ -17,7 +18,8 @@ export default function ReminderSettings({
   canEdit,
   planLabel,
   planId,
-  availablePlanLabel,
+  requiredPlanLabel,
+  maxAutoReminders,
 }: ReminderSettingsProps) {
   const [enabled, setEnabled] = useState(initialEnabled);
   const [windowMinutes, setWindowMinutes] = useState(String(initialWindowMinutes));
@@ -65,12 +67,17 @@ export default function ReminderSettings({
         <div>
           <h2 className="text-lg font-semibold">Lembretes no WhatsApp</h2>
           <p className="text-sm text-slate-300">
-            Ajuste quando os clientes recebem lembretes automáticos. Recurso disponível no plano {availablePlanLabel}.
+            Ajuste quando os clientes recebem lembretes automáticos.
+            {maxAutoReminders > 0 ? (
+              <span> Seu plano atual permite até {maxAutoReminders} lembrete(s) automático(s) por agendamento.</span>
+            ) : (
+              <span> Recurso disponível a partir do plano {requiredPlanLabel}.</span>
+            )}
           </p>
         </div>
         {!canEdit && (
           <span className="text-xs text-amber-300">
-            Faça upgrade para habilitar.
+            Faça upgrade para habilitar {requiredPlanLabel} e liberar lembretes automáticos.
           </span>
         )}
       </header>
@@ -125,8 +132,7 @@ export default function ReminderSettings({
 
       <footer className="mt-4 rounded-2xl bg-white/5 p-3 text-xs text-slate-300">
         <p>
-          O lembrete confirma que o agendamento continua válido. O profissional pode receber uma cópia adicional quando
-          houver um WhatsApp cadastrado e a equipe habilitar essa opção no ambiente.
+          Os lembretes são enviados somente quando houver resposta recente do cliente (22h) e dentro da franquia do plano.
         </p>
         <p className="mt-1 text-slate-400">
           Plano atual: {planLabel} ({planId}).

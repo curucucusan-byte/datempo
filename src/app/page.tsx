@@ -21,7 +21,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "E os lembretes automáticos?",
-    a: "No plano Pro você ativa lembretes no WhatsApp, escolhe antecedência e decide se quer copiar o time.",
+    a: "Nos planos Starter e Pro você ativa lembretes no WhatsApp, escolhe antecedência e decide se quer copiar o time.",
   },
   {
     q: "Como proteger contra não comparecimento?",
@@ -169,10 +169,10 @@ export default function LandingWhatsApp() {
 
         <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { t: "Integra Google + WhatsApp", d: "Conecte o Google Agenda (OAuth) e envie confirmações e lembretes pelo WhatsApp." },
-            { t: "Fluxo prático para o cliente", d: "Um link simples para escolher dia e horário. Sem atrito." },
-            { t: "Planos sob medida", d: "Essencial: 1 agenda (troca diária). Pro: até 10 agendas." },
-            { t: "Lembretes configuráveis", d: "No Pro, escolha se e quando o lembrete será enviado." },
+          { t: "Integra Google + WhatsApp", d: "Conecte o Google Agenda (OAuth) e envie confirmações e lembretes pelo WhatsApp." },
+          { t: "Fluxo prático para o cliente", d: "Um link simples para escolher dia e horário. Sem atrito." },
+          { t: "Planos sob medida", d: "Free: 1 agenda. Starter: até 3 agendas. Pro: até 20 agendas." },
+          { t: "Lembretes configuráveis", d: "Nos planos Starter e Pro, escolha se e quando enviar lembretes." },
             { t: "Painel direto ao ponto", d: "Gerencie horários e acompanhe agendamentos em poucos cliques." },
             { t: "Teste sem custo", d: "Ative em minutos e continue apenas se fizer sentido." },
           ].map((f) => (
@@ -193,15 +193,18 @@ export default function LandingWhatsApp() {
         <p className="mt-2 text-slate-300">Preço acessível e transparente, sem surpresas.</p>
 
         <div className="mt-8 grid sm:grid-cols-2 gap-6">
-          {Object.values(ACTIVE_PLANS).map((plan) => (
-            <div
-              key={plan.id}
-              className={`rounded-2xl border ${plan.id === "pro" ? "border-emerald-400/60 bg-emerald-500/5" : "border-white/10 bg-slate-900/60"} p-6`}
-            >
+          {["free", "starter", "pro"].map((planKey) => {
+            const plan = ACTIVE_PLANS[planKey as keyof typeof ACTIVE_PLANS];
+            const highlight = plan.id === "starter";
+            return (
+              <div
+                key={plan.id}
+                className={`rounded-2xl border ${highlight ? "border-emerald-400/60 bg-emerald-500/5" : "border-white/10 bg-slate-900/60"} p-6`}
+              >
               <div className="flex items-baseline justify-between">
                 <h3 className="text-lg font-semibold">{plan.label}</h3>
-                <span className={`text-xs ${plan.id === "pro" ? "text-emerald-300" : "text-slate-400"}`}>
-                  {plan.id === "pro" ? "recomendado" : ""}
+                <span className={`text-xs ${highlight ? "text-emerald-300" : "text-slate-400"}`}>
+                  {highlight ? "mais popular" : ""}
                 </span>
               </div>
               <div className="mt-3 text-2xl font-bold">{plan.priceDisplay}</div>
@@ -215,12 +218,13 @@ export default function LandingWhatsApp() {
               </ul>
               <Link
                 href="/login"
-                className={`mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold ${plan.id === "pro" ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400" : "ring-1 ring-white/15 hover:bg-white/10"}`}
+                className={`mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold ${highlight ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400" : "ring-1 ring-white/15 hover:bg-white/10"}`}
               >
                 Experimentar grátis
               </Link>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </section>
 

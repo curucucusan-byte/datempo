@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 type Props = {
-  planId: "essencial" | "pro";
+  planId: "free" | "starter" | "pro";
   isCurrent: boolean;
 };
 

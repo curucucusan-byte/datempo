@@ -11,7 +11,7 @@ const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 interface PaymentButtonsProps {
-  plan: ActivePlanId;
+  plan: Exclude<ActivePlanId, "free">;
   price: number;
 }
 
@@ -77,6 +77,16 @@ export default function PaymentButtons({ plan, price }: PaymentButtonsProps) {
     }
   };
 
+  const priceLabel = useMemo(
+    () =>
+      new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 2,
+      }).format(price),
+    [price],
+  );
+
   return (
     <div className="space-y-3">
       <button
@@ -85,7 +95,7 @@ export default function PaymentButtons({ plan, price }: PaymentButtonsProps) {
         disabled={loading !== null}
         className="w-full rounded bg-blue-600 py-2 px-4 text-white hover:bg-blue-700 disabled:opacity-50"
       >
-        {loading === "card" ? "Processando..." : `💳 Cartão - R$ ${price}/mês`}
+        {loading === "card" ? "Processando..." : `💳 Cartão - ${priceLabel}/mês`}
       </button>
 
       <button
@@ -94,7 +104,7 @@ export default function PaymentButtons({ plan, price }: PaymentButtonsProps) {
         disabled={loading !== null}
         className="w-full rounded bg-green-600 py-2 px-4 text-white hover:bg-green-700 disabled:opacity-50"
       >
-        {loading === "pix" ? "Processando..." : `🔑 Pix - R$ ${price}/mês`}
+        {loading === "pix" ? "Processando..." : `🔑 Pix - ${priceLabel}/mês`}
       </button>
 
       <p className="text-center text-xs text-gray-500">

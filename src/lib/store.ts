@@ -8,7 +8,6 @@ export type Appointment = {
   slug: string;
   customerName: string;
   customerPhone: string;
-  service: string;
   startISO: string;
   endISO: string;
   ownerUid?: string | null;

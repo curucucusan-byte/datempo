@@ -6,9 +6,9 @@ import { authenticateRequest } from "@/lib/session";
 // import type { Professional } from "@/lib/professionals"; // Removido
 import { ensureAccount, getAccount } from "@/lib/account";
 import { CALENDAR_SWAP_INTERVAL_MS, getPlanCalendarLimit } from "@/lib/plans";
-import { CalendarService, CalendarWorkHours, LinkedCalendar } from "@/lib/google";
+import { CalendarWorkHours, LinkedCalendar } from "@/lib/google";
 
-const DEFAULT_SERVICES: CalendarService[] = [{ name: "Atendimento padrão", minutes: 60 }];
+const DEFAULT_SLOT_DURATION_MINUTES = 60;
 
 const DEFAULT_WORK_HOURS: CalendarWorkHours = {
   monday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
@@ -29,22 +29,12 @@ const DEFAULT_PREPAYMENT = {
   manualInstructions: "",
 };
 
-function sanitizeServices(services: CalendarService[] | undefined | null): CalendarService[] {
-  if (!Array.isArray(services) || services.length === 0) {
-    return DEFAULT_SERVICES.map((service) => ({ ...service }));
+function sanitizeSlotDuration(value: unknown): number {
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return DEFAULT_SLOT_DURATION_MINUTES;
   }
-  const cleaned = services
-    .map((service) => {
-      const name = typeof service?.name === "string" ? service.name.trim() : "";
-      const minutes = typeof service?.minutes === "number" ? service.minutes : Number(service?.minutes ?? 0);
-      if (!name || !Number.isFinite(minutes) || minutes <= 0) {
-        return null;
-      }
-      return { name, minutes: Math.min(8 * 60, Math.max(5, Math.round(minutes))) };
-    })
-    .filter((value): value is CalendarService => value !== null);
-
-  return cleaned.length ? cleaned : DEFAULT_SERVICES.map((service) => ({ ...service }));
+  return Math.max(5, Math.min(8 * 60, Math.round(numeric)));
 }
 
 function sanitizeWorkHours(workHours: CalendarWorkHours | undefined | null): CalendarWorkHours {
@@ -111,7 +101,7 @@ type Body =
         summary: string;
         description: string;
         whatsappNumber: string;
-        services?: CalendarService[];
+        slotDurationMinutes?: number;
         workHours?: CalendarWorkHours;
         requiresPrepayment?: boolean;
         prepaymentMode?: "manual" | "stripe";
@@ -129,7 +119,7 @@ type Body =
       id: string;
       description?: string;
       whatsappNumber?: string;
-      services?: CalendarService[];
+      slotDurationMinutes?: number;
       workHours?: CalendarWorkHours;
       requiresPrepayment?: boolean;
       prepaymentMode?: "manual" | "stripe";
@@ -165,7 +155,7 @@ export async function POST(req: Request) {
       summary,
       description,
       whatsappNumber,
-      services,
+      slotDurationMinutes,
       workHours,
       requiresPrepayment,
       prepaymentMode,
@@ -195,7 +185,9 @@ export async function POST(req: Request) {
         ...account.linkedCalendars[existsIdx],
         description,
         whatsappNumber,
-        services: sanitizeServices(services ?? account.linkedCalendars[existsIdx]?.services),
+        slotDurationMinutes: sanitizeSlotDuration(
+          slotDurationMinutes ?? account.linkedCalendars[existsIdx]?.slotDurationMinutes
+        ),
         workHours: sanitizeWorkHours(workHours ?? account.linkedCalendars[existsIdx]?.workHours),
         requiresPrepayment: prepaymentConfig.requiresPrepayment,
         prepaymentMode: prepaymentConfig.prepaymentMode,
@@ -275,7 +267,7 @@ export async function POST(req: Request) {
       description,
       whatsappNumber,
       active: true, // Nova agenda é ativa por padrão
-      services: sanitizeServices(services),
+      slotDurationMinutes: sanitizeSlotDuration(slotDurationMinutes),
       workHours: sanitizeWorkHours(workHours),
       requiresPrepayment: prepaymentConfig.requiresPrepayment,
       prepaymentMode: prepaymentConfig.prepaymentMode,
@@ -371,7 +363,7 @@ export async function POST(req: Request) {
       id,
       description,
       whatsappNumber,
-      services,
+      slotDurationMinutes,
       workHours,
       requiresPrepayment,
       prepaymentMode,
@@ -402,7 +394,9 @@ export async function POST(req: Request) {
       description: typeof description === "string" && description.trim() ? description.trim() : current.description,
       whatsappNumber:
         typeof whatsappNumber === "string" && whatsappNumber.trim() ? whatsappNumber.trim() : current.whatsappNumber,
-      services: services ? sanitizeServices(services) : current.services ?? sanitizeServices(undefined),
+      slotDurationMinutes: sanitizeSlotDuration(
+        typeof slotDurationMinutes !== "undefined" ? slotDurationMinutes : current.slotDurationMinutes
+      ),
       workHours: workHours ? sanitizeWorkHours(workHours) : current.workHours ?? sanitizeWorkHours(undefined),
       requiresPrepayment: prepaymentConfig.requiresPrepayment,
       prepaymentMode: prepaymentConfig.prepaymentMode,

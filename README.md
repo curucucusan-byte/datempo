@@ -64,9 +64,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
    - **Admin SDK**: `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` (service account) para Firestore.
    - **Client/Web SDK**: chaves `NEXT_PUBLIC_FIREBASE_*` geradas ao criar um app Web no console (ex.: `NEXT_PUBLIC_FIREBASE_API_KEY`). Sem elas o login não carrega.
 3. Inicie o projeto com `yarn dev` e acesse:
-   - Landing page: `http://localhost:3000/` (fluxo já preparado para produção, com CTA de login).
-   - Página do profissional demo: `http://localhost:3000/demo` (crie agendamentos → `/api/appointment`).
-   - Login/Dashboard: `http://localhost:3000/login` (use um usuário criado no Firebase Auth). A tela aceita e-mail/senha ou Google; habilite o provedor Google no painel do Firebase Auth para permitir o login social. Após autenticar, gerencie agendas em `/dashboard` e `/dashboard/professionals`.
+   - Landing page: `http://localhost:3000/` (CTA para login/admin).
+   - Login/Dashboard: `http://localhost:3000/login` (use um usuário criado no Firebase Auth). Após autenticar, conecte o Google Calendar em `/dashboard?tab=agenda` e copie o link público em `/agenda/{slug}`.
 4. Para acionar manualmente o lembrete de WhatsApp, execute `yarn cron:reminder`. Caso use token de serviço, envie `Authorization: Bearer <DASHBOARD_TOKEN>`; senão, autentique via Firebase e use um ID token válido.
 5. Verifique os resultados:
    - Leads em dev: arquivo `leads.dev.json`.
@@ -77,14 +76,13 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 Execute os passos abaixo sempre que configurar um novo ambiente ou antes de fazer deploy:
 
-1. **Seed inicial** — Com Firebase configurado (ou somente arquivos locais), rode `yarn seed:professionals` e confira se os profissionais aparecem na coleção/JSON.
-2. **Lead** — Na landing (`/`), envie um e-mail; confirme a resposta 200 e a presença do registro no Firestore (`leads`) ou `leads.dev.json`.
-3. **Agendamento** — Em `/demo`, crie um agendamento com dados de teste. Verifique:
+1. **Lead** — Na landing (`/`), envie um e-mail; confirme a resposta 200 e a presença do registro no Firestore (`leads`) ou `leads.dev.json`.
+2. **Agendamento** — Vincule uma agenda Google e use o link público (`/agenda/{slug}`) para criar um agendamento de teste. Verifique:
    - resposta `ok: true`;
    - log `[whats:mock]` no terminal (ou mensagem real se estiver usando um provedor).
-4. **Dashboard** — Autentique-se em `/login` e valide no `/dashboard` se o agendamento recém-criado aparece, testando filtros por profissional, serviço, período e busca. Ajuste dados do profissional em `/dashboard/professionals`.
-5. **Cron** — Execute `yarn cron:reminder`; se houver agendamentos dentro da janela configurada, o comando deve registrar envios e marcar `reminderSentAt` no dashboard.
-6. **Rate limit** — Use o formulário de lead repetidamente para garantir que o erro 429 seja retornado após exceder o limite (opcional, mas recomendado).
+3. **Dashboard** — Autentique-se em `/dashboard` e confirme se o agendamento recém-criado aparece. Teste filtros por agenda, período e busca.
+4. **Cron** — Execute `yarn cron:reminder`; se houver agendamentos dentro da janela configurada, o comando deve registrar envios e marcar `reminderSentAt` no dashboard.
+5. **Rate limit** — Use o formulário de lead repetidamente para garantir que o erro 429 seja retornado após exceder o limite (opcional, mas recomendado).
 
 ## Firebase & produção
 
@@ -94,12 +92,7 @@ Execute os passos abaixo sempre que configurar um novo ambiente ou antes de faze
    firebase deploy --only firestore:rules,firestore:indexes --project <seu-projeto>
    ```
    (ou use o painel web copiando `firebase/firestore.rules` e `firebase/firestore.indexes.json`).
-3. Popular a coleção de profissionais diretamente do JSON local:
-   ```bash
-   yarn seed:professionals
-   ```
-   O script utiliza as credenciais Admin e grava/atualiza documentos `professionals/{slug}`.
-4. Configure OAuth do Google (agendas):
+3. Configure OAuth do Google (agendas):
    - Defina `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` nas variáveis de ambiente.
    - Opcional: `GOOGLE_REDIRECT_URI` (padrão é `${APP_BASE_URL}/api/google/oauth/callback`).
    - No console de APIs do Google, autorize o URI de redirecionamento.
