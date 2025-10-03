@@ -170,17 +170,19 @@ export async function ensureAccount(uid: string, email?: string | null): Promise
   if (existing) return existing;
   const plan: ActivePlanId = DEFAULT_ACTIVE_PLAN_ID;
   const now = nowIso();
-  const trialEnds = addDays(ACTIVE_PLANS[plan].trialDays);
-  const periodStart = now;
-  const periodEnd = addMonths(new Date(), 1).toISOString();
+  const planDetails = ACTIVE_PLANS[plan];
+  const hasTrial = planDetails.trialDays > 0;
+  const trialEnds = hasTrial ? addDays(planDetails.trialDays) : null;
+  const periodStart = hasTrial ? now : null;
+  const periodEnd = hasTrial ? addMonths(new Date(), 1).toISOString() : null;
   const account: Account = {
     uid,
     email: email ?? null,
     plan,
-    status: "trial",
+    status: hasTrial ? "trial" : "active",
     trialEndsAt: trialEnds,
-     currentPeriodStart: periodStart,
-     currentPeriodEnd: periodEnd,
+    currentPeriodStart: periodStart,
+    currentPeriodEnd: periodEnd,
     reminders: defaultRemindersForPlan(plan),
     linkedCalendars: [], // Inicializar como array vazio de LinkedCalendar
     activeCalendarId: null,

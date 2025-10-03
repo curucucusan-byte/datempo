@@ -91,8 +91,10 @@ export default async function PlansPage() {
                 <p className="mt-2 text-sm text-slate-300">
                   {plan.trialDays} dia(s) para testar sem custo.
                 </p>
-              ) : (
+              ) : plan.monthlyPrice === 0 ? (
                 <p className="mt-2 text-sm text-slate-400">Plano permanente sem mensalidade.</p>
+              ) : (
+                <p className="mt-2 text-sm text-slate-300">Comece agora e cancele quando quiser.</p>
               )}
               <ul className="mt-4 space-y-2 text-sm text-slate-200">
                 {plan.bullets.map((perk) => (

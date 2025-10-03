@@ -63,7 +63,7 @@ export const ACTIVE_PLANS: Record<ActivePlanId, PlanDetails> = {
     label: "Starter",
     monthlyPrice: 49,
     priceDisplay: "R$ 49,00/mês",
-    trialDays: 3,
+    trialDays: 0,
     limits: {
       maxConnectedCalendars: 3,
       maxAppointmentsPerMonth: 300,
@@ -91,7 +91,7 @@ export const ACTIVE_PLANS: Record<ActivePlanId, PlanDetails> = {
     label: "Pro",
     monthlyPrice: 99,
     priceDisplay: "R$ 99,00/mês",
-    trialDays: 3,
+    trialDays: 0,
     limits: {
       maxConnectedCalendars: 20,
       maxAppointmentsPerMonth: 1000,
@@ -116,7 +116,7 @@ export const ACTIVE_PLANS: Record<ActivePlanId, PlanDetails> = {
   },
 };
 
-export const DEFAULT_ACTIVE_PLAN_ID: ActivePlanId = "starter";
+export const DEFAULT_ACTIVE_PLAN_ID: ActivePlanId = "free";
 
 export function isActivePlan(plan: PlanId): plan is ActivePlanId {
   return plan === "free" || plan === "starter" || plan === "pro";
