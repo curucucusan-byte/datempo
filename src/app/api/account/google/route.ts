@@ -110,11 +110,13 @@ type Body =
         prepaymentCurrency?: string;
         manualPixKey?: string;
         manualInstructions?: string;
+        logoPath?: string;
       };
     }
   | { action: "unlink"; id: string }
   | { action: "unlinkAll" }
   | { action: "setActive"; id: string }
+  | { action: "regenPublicToken"; id: string }
   | {
       action: "updateCalendar";
       id: string;
@@ -128,6 +130,7 @@ type Body =
       prepaymentCurrency?: string;
       manualPixKey?: string;
       manualInstructions?: string;
+      logoPath?: string;
     };
 
 export async function POST(req: Request) {
@@ -164,6 +167,7 @@ export async function POST(req: Request) {
       prepaymentCurrency,
       manualPixKey,
       manualInstructions,
+      logoPath,
     } = body.calendar ?? { id: "", summary: "", description: "", whatsappNumber: "" };
     if (!id || !summary || !description || !whatsappNumber) {
       return NextResponse.json({ error: "Informe id, summary, description e whatsappNumber do calendário" }, { status: 400 });
@@ -265,6 +269,9 @@ export async function POST(req: Request) {
       manualInstructions,
     });
 
+    // token público para compartilhar link com hash
+    const publicToken = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+
     const newLinkedCalendar: LinkedCalendar = {
       id,
       summary,
@@ -281,6 +288,8 @@ export async function POST(req: Request) {
       prepaymentCurrency: prepaymentConfig.prepaymentCurrency,
       manualPixKey: prepaymentConfig.manualPixKey,
       manualInstructions: prepaymentConfig.manualInstructions,
+      publicToken,
+      logoPath: typeof logoPath === "string" && logoPath.trim() ? logoPath.trim() : null,
     };
 
     const nextLinkedCalendars = [...account.linkedCalendars, newLinkedCalendar];
@@ -364,6 +373,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, account: { ...account, ...payload } });
   }
 
+  if (body.action === "regenPublicToken") {
+    const { id } = body;
+    if (!id) return NextResponse.json({ error: "Informe id" }, { status: 400 });
+    const idx = account.linkedCalendars.findIndex((c) => c.id === id);
+    if (idx === -1) return NextResponse.json({ error: "Agenda não encontrada" }, { status: 404 });
+    const token = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+    const updated = { ...account.linkedCalendars[idx], publicToken: token } as LinkedCalendar;
+    const next = [...account.linkedCalendars];
+    next[idx] = updated;
+    const payload = { linkedCalendars: next, updatedAt: new Date().toISOString() } as Record<string, unknown>;
+    const dbRef = (await import("@/lib/firebaseAdmin")).getDb();
+    await dbRef.collection("accounts").doc(account.uid).set(payload, { merge: true });
+    if (updated.slug) {
+      await dbRef.collection("linkedCalendars").doc(updated.slug).set(updated);
+    }
+    return NextResponse.json({ ok: true, account: { ...account, ...payload } });
+  }
+
   if (body.action === "updateCalendar") {
     const {
       id,
@@ -377,6 +404,7 @@ export async function POST(req: Request) {
       prepaymentCurrency,
       manualPixKey,
       manualInstructions,
+      logoPath,
     } = body;
     if (!id) {
       return NextResponse.json({ error: "Informe id" }, { status: 400 });
@@ -412,6 +440,7 @@ export async function POST(req: Request) {
       prepaymentCurrency: prepaymentConfig.prepaymentCurrency,
       manualPixKey: prepaymentConfig.manualPixKey,
       manualInstructions: prepaymentConfig.manualInstructions,
+      logoPath: typeof logoPath === "string" && logoPath.trim() ? logoPath.trim() : current.logoPath ?? null,
     };
     const nextLinkedCalendars = [...account.linkedCalendars];
     nextLinkedCalendars[calendarIndex] = updatedCalendar;

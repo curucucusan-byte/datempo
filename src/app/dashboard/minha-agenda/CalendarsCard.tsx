@@ -41,6 +41,7 @@ type CalendarDraft = {
   prepaymentCurrency: string;
   manualPixKey: string;
   manualInstructions: string;
+  logoPath: string;
 };
 
 function formatWhen(iso?: string | null) {
@@ -68,6 +69,7 @@ export default function CalendarsCard() {
   const [linkPrepaymentCurrency, setLinkPrepaymentCurrency] = useState("brl");
   const [linkManualPixKey, setLinkManualPixKey] = useState("");
   const [linkManualInstructions, setLinkManualInstructions] = useState("");
+  const [linkLogoPath, setLinkLogoPath] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -108,6 +110,7 @@ export default function CalendarsCard() {
           prepaymentCurrency: calendar.prepaymentCurrency ?? "brl",
           manualPixKey: remotePaymentEnabled ? calendar.manualPixKey ?? "" : "",
           manualInstructions: remotePaymentEnabled ? calendar.manualInstructions ?? "" : "",
+          logoPath: (calendar as any).logoPath ?? "",
         };
       }
       setDrafts(draftMap);
@@ -147,8 +150,8 @@ export default function CalendarsCard() {
     }
   }, [configuredBaseUrl]);
 
-  const handleCopyLink = async (slug: string) => {
-    const link = computePublicLink(slug);
+  const handleCopyLink = async (slug: string, token?: string | null) => {
+    const link = computePublicLink(slug, token || undefined);
     try {
       if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
         throw new Error("clipboard_unavailable");
@@ -161,9 +164,11 @@ export default function CalendarsCard() {
     setTimeout(() => setCopyFeedback(null), 2500);
   };
 
-  const computePublicLink = (slug: string) => {
+  const computePublicLink = (slug: string, token?: string) => {
     const base = publicBaseUrl || (typeof window !== "undefined" ? window.location.origin : "");
-    return `${base.replace(/\/$/, "")}/agenda/${slug}`;
+    return token
+      ? `${base.replace(/\/$/, "")}/agenda/${slug}/${token}`
+      : `${base.replace(/\/$/, "")}/agenda/${slug}`;
   };
 
   async function linkCalendar() {
@@ -195,6 +200,7 @@ export default function CalendarsCard() {
             prepaymentCurrency: linkPrepaymentCurrency,
             manualPixKey: requiresPrepayment ? linkManualPixKey : "",
             manualInstructions: requiresPrepayment ? linkManualInstructions : "",
+            logoPath: linkLogoPath || undefined,
           },
         }),
       });
@@ -211,6 +217,7 @@ export default function CalendarsCard() {
       setLinkManualPixKey("");
       setLinkManualInstructions("");
       setLinkSlotDuration(String(DEFAULT_SLOT_DURATION));
+      setLinkLogoPath("");
       void refresh();
     } catch (err) {
       setStatus(err instanceof Error ? err.message : "Erro ao vincular");
@@ -274,6 +281,7 @@ export default function CalendarsCard() {
       prepaymentCurrency: "brl",
       manualPixKey: "",
       manualInstructions: "",
+      logoPath: "",
     };
   }
 
@@ -440,6 +448,13 @@ export default function CalendarsCard() {
               onChange={(e) => setLinkSlotDuration(e.target.value)}
               className="rounded-xl bg-white/5 px-3 py-2 text-sm ring-1 ring-white/10"
             />
+            <input
+              type="text"
+              placeholder="Caminho do logo (em public), ex.: /agenda-logos/slug/logo.webp"
+              value={linkLogoPath}
+              onChange={(e) => setLinkLogoPath(e.target.value)}
+              className="rounded-xl bg-white/5 px-3 py-2 text-sm ring-1 ring-white/10"
+            />
             <div className="rounded-xl bg-white/5 p-3 text-xs text-slate-200 space-y-3">
               <div className="flex items-center justify-between">
                 <label className="font-medium">Exigir pagamento antecipado?</label>
@@ -561,6 +576,7 @@ export default function CalendarsCard() {
                   prepaymentCurrency: c.prepaymentCurrency ?? "brl",
                   manualPixKey: c.manualPixKey ?? "",
                   manualInstructions: c.manualInstructions ?? "",
+                  logoPath: (c as any).logoPath ?? "",
                 };
                 const isActive = activeId === c.id;
                 return (
@@ -572,10 +588,10 @@ export default function CalendarsCard() {
                         <div className="text-xs text-slate-500 break-all">{c.id}</div>
                         {c.slug && (
                           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-emerald-300">
-                            <span className="truncate">{computePublicLink(c.slug)}</span>
+                            <span className="truncate">{computePublicLink(c.slug, (c as any).publicToken)}</span>
                             <button
                               type="button"
-                              onClick={() => handleCopyLink(c.slug)}
+                              onClick={() => handleCopyLink(c.slug, (c as any).publicToken)}
                               className="rounded-lg bg-emerald-500/20 px-2 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/30"
                             >
                               Copiar link
@@ -597,6 +613,31 @@ export default function CalendarsCard() {
                             {canSwapNow ? "Tornar ativa" : `Aguarde ${formatRemaining((lastSwapMs + CALENDAR_SWAP_INTERVAL_MS) - now)}`}
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setBusy(true);
+                            setStatus(null);
+                            try {
+                              const r = await fetch("/api/account/google", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ action: "regenPublicToken", id: c.id }),
+                              });
+                              const j = await r.json();
+                              if (!r.ok || !j.ok) throw new Error(j?.error || `Erro ${r.status}`);
+                              setStatus("Link público regenerado.");
+                              void refresh();
+                            } catch (err) {
+                              setStatus(err instanceof Error ? err.message : "Erro ao regenerar link");
+                            } finally {
+                              setBusy(false);
+                            }
+                          }}
+                          className="rounded-xl bg-white/10 px-3 py-2 text-xs text-slate-200 hover:bg-white/15 disabled:opacity-60"
+                        >
+                          Regenerar link
+                        </button>
                       </div>
                     </div>
 

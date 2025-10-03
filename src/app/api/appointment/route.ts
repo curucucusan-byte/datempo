@@ -53,28 +53,30 @@ function getTimeZoneOffset(date: Date, timeZone: string) {
 }
 
 function parseFormDateTime(value: string, timeZone: string) {
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
-    return null;
+  // 1) Formato local "YYYY-MM-DDTHH:mm" (sem segundos e sem timezone)
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+    const [datePart, timePart] = value.split("T");
+    if (!datePart || !timePart) return null;
+    const [yearStr, monthStr, dayStr] = datePart.split("-");
+    const [hourStr, minuteStr] = timePart.split(":");
+    const baseUtc = Date.UTC(
+      Number(yearStr),
+      Number(monthStr) - 1,
+      Number(dayStr),
+      Number(hourStr),
+      Number(minuteStr),
+      0,
+    );
+    const baseDate = new Date(baseUtc);
+    const offset = getTimeZoneOffset(baseDate, timeZone);
+    return new Date(baseUtc - offset);
   }
 
-  const [datePart, timePart] = value.split("T");
-  if (!datePart || !timePart) return null;
+  // 2) Qualquer ISO válido (ex.: "2025-10-03T10:00:00.000Z")
+  const iso = new Date(value);
+  if (!Number.isNaN(iso.getTime())) return iso;
 
-  const [yearStr, monthStr, dayStr] = datePart.split("-");
-  const [hourStr, minuteStr] = timePart.split(":");
-
-  const baseUtc = Date.UTC(
-    Number(yearStr),
-    Number(monthStr) - 1,
-    Number(dayStr),
-    Number(hourStr),
-    Number(minuteStr),
-    0,
-  );
-
-  const baseDate = new Date(baseUtc);
-  const offset = getTimeZoneOffset(baseDate, timeZone);
-  return new Date(baseUtc - offset);
+  return null;
 }
 
 function clampDurationMinutes(value: unknown, fallback: number) {
