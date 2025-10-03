@@ -15,7 +15,7 @@ function formatCurrency(amount: number, currency: string) {
 export default async function PixPaymentPage({ params }: { params: { id: string } }) {
   const user = await getAuthenticatedUser();
   if (!user) {
-    redirect("/login");
+    redirect(`/login?next=${encodeURIComponent('/payment/pix/' + params.id)}&m=login_required`);
   }
 
   const record = await getPaymentRecordById(params.id);

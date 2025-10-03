@@ -204,6 +204,7 @@ export async function ensureAccount(uid: string, email?: string | null): Promise
 
 export function isAccountActive(account: Account): boolean {
   if (account.plan === "inactive") return false;
+  if (account.plan === "free") return true; // Plano free sempre ativo
   if (account.status === "active") return true;
   if (account.status !== "trial") return false;
   if (!account.trialEndsAt) return true;

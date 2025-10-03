@@ -11,9 +11,13 @@ export const metadata = {
   title: "Planos — ZapAgenda",
 };
 
-export default async function PlansPage() {
+export default async function PlansPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const user = await getAuthenticatedUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`/login?next=${encodeURIComponent('/dashboard/plans')}&m=login_required`);
 
   const account = await ensureAccount(user.uid, user.email ?? null);
   const planDetails = getPlanDetails(account.plan);
@@ -41,6 +45,12 @@ export default async function PlansPage() {
     return value;
   };
 
+  const noticeParam = Array.isArray(searchParams?.m) ? searchParams?.m[0] : searchParams?.m;
+  const lastPaidSub = subscriptions.find((s) => s.plan !== "free");
+  const showDowngraded = (noticeParam === "downgraded") || (
+    account.plan === "free" && lastPaidSub && ["canceled", "past_due", "incomplete", "incomplete_expired"].includes(lastPaidSub.status)
+  );
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8">
@@ -64,6 +74,14 @@ export default async function PlansPage() {
           Voltar ao dashboard
         </Link>
       </header>
+      {showDowngraded && (
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-6 rounded-2xl border border-amber-400/40 bg-amber-900/20 p-4 text-sm text-amber-100">
+            Você não possui mais o plano pago. Sua conta segue ativa no plano Free. Faça upgrade novamente para
+            recuperar os recursos adicionais.
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto max-w-6xl px-6 pb-16 space-y-12">
         <div className="grid gap-6 lg:grid-cols-3">

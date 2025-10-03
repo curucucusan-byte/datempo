@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ensureAccount, getReminderSettings, isAccountActive } from "@/lib/account";
 import { getAuthenticatedUser } from "@/lib/session";
 import { ACTIVE_PLANS, getPlanDetails, isActivePlan } from "@/lib/plans";
+import { listSubscriptionsByUid } from "@/lib/payments";
 
 import Link from "next/link";
 
@@ -22,10 +23,21 @@ export default async function DashboardPage({
 }) {
   const user = await getAuthenticatedUser();
   if (!user) {
-    redirect("/login");
+    redirect(`/login?next=${encodeURIComponent('/dashboard')}&m=login_required`);
   }
 
   const account = await ensureAccount(user.uid, user.email ?? null);
+  // Se usuário foi rebaixado de um plano pago, levar direto à página de planos com aviso
+  if (account.plan === "free") {
+    try {
+      const subs = await listSubscriptionsByUid(user.uid);
+      const hadPaid = subs.some((s) => s.plan !== "free");
+      const notActive = subs.some((s) => ["canceled", "past_due", "incomplete", "incomplete_expired"].includes(s.status));
+      if (hadPaid && notActive) {
+        redirect(`/dashboard/plans?m=downgraded`);
+      }
+    } catch {}
+  }
   const planDetails = getPlanDetails(account.plan);
   const reminders = getReminderSettings(account);
   const accountActive = isAccountActive(account);

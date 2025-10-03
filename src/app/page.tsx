@@ -174,7 +174,7 @@ export default function LandingWhatsApp() {
           { t: "Planos sob medida", d: "Free: 1 agenda. Starter: até 3 agendas. Pro: até 20 agendas." },
           { t: "Lembretes configuráveis", d: "Nos planos Starter e Pro, escolha se e quando enviar lembretes." },
             { t: "Painel direto ao ponto", d: "Gerencie horários e acompanhe agendamentos em poucos cliques." },
-            { t: "Teste sem custo", d: "Ative em minutos e continue apenas se fizer sentido." },
+            { t: "Plano Free", d: "Comece grátis no plano Free e faça upgrade quando quiser." },
           ].map((f) => (
             <div key={f.t} className="rounded-2xl border border-white/10 bg-slate-900/60 p-5">
               <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 ring-1 ring-emerald-400/30">

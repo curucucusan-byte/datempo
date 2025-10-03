@@ -124,12 +124,10 @@ export async function POST(req: Request) {
     if (linkedCalendar.ownerUid) {
       ownerAccount = await ensureAccount(linkedCalendar.ownerUid, null);
       if (!isAccountActive(ownerAccount)) {
+        // Não expor detalhes de billing ao cliente final
         return NextResponse.json(
-          {
-            error:
-              "Plano inativo. Acesse o dashboard do ZapAgenda para ativar ou renovar seu plano antes de aceitar novos agendamentos.",
-          },
-          { status: 403 }
+          { error: "Agenda indisponível no momento. Tente novamente mais tarde." },
+          { status: 403 },
         );
       }
     }
