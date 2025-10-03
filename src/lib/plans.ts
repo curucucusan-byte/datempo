@@ -20,9 +20,9 @@ export const ACTIVE_PLANS: Record<ActivePlanId, PlanDetails> = {
   essencial: {
     id: "essencial",
     label: "Essencial",
-    monthlyPrice: 21,
-    priceDisplay: "R$ 21,00/mês",
-    trialDays: 3,
+    monthlyPrice: 0,
+    priceDisplay: "Grátis",
+    trialDays: 0,
     googleCalendars: 1,
     calendarSwapPerDay: 1,
     whatsappReminders: {
@@ -30,9 +30,9 @@ export const ACTIVE_PLANS: Record<ActivePlanId, PlanDetails> = {
       configurable: false,
     },
     bullets: [
-      "1 agenda do Google (troca 1x ao dia)",
-      "Lembretes WhatsApp: Não",
-      "Teste: 3 dias (sem custo)",
+      "Sem custo mensal",
+      "1 agenda do Google ativa",
+      "Lembretes WhatsApp indisponíveis",
     ],
   },
   pro: {
