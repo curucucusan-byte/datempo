@@ -321,10 +321,14 @@ export async function listPaymentsByUid(uid: string): Promise<PaymentRecord[]> {
   const snapshot = await db
     .collection(PAYMENTS_COLLECTION)
     .where("uid", "==", uid)
-    .orderBy("createdAt", "desc")
     .limit(20)
     .get();
-  return snapshot.docs.map((doc) => doc.data() as PaymentRecord);
+  const records = snapshot.docs.map((doc) => doc.data() as PaymentRecord);
+  return records.sort((a, b) => {
+    const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return bTime - aTime;
+  });
 }
 
 export async function listSubscriptionsByUid(uid: string): Promise<Subscription[]> {
@@ -332,10 +336,14 @@ export async function listSubscriptionsByUid(uid: string): Promise<Subscription[
   const snapshot = await db
     .collection(SUBSCRIPTIONS_COLLECTION)
     .where("uid", "==", uid)
-    .orderBy("createdAt", "desc")
     .limit(10)
     .get();
-  return snapshot.docs.map((doc) => doc.data() as Subscription);
+  const records = snapshot.docs.map((doc) => doc.data() as Subscription);
+  return records.sort((a, b) => {
+    const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return bTime - aTime;
+  });
 }
 
 // Verificar se um usuário pode fazer um novo pagamento Pix

@@ -4,16 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleAuthProvider, signInWithPopup, type Auth } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
-import Image from "next/image";
-
 import { getClientAuth } from "@/lib/firebaseClient";
 
 export default function LoginForm() {
   const router = useRouter();
   const [auth, setAuth] = useState<Auth | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  const [authenticating, setAuthenticating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,7 +42,7 @@ export default function LoginForm() {
   }
 
   async function handleGoogleSignIn() {
-    setGoogleLoading(true);
+    setAuthenticating(true);
     setError(null);
     try {
       if (!auth) {
@@ -59,12 +56,12 @@ export default function LoginForm() {
     } catch (err) {
       if (err instanceof FirebaseError && err.code === "auth/popup-closed-by-user") {
         setError(null);
+        setAuthenticating(false);
         return;
       }
       const message = err instanceof Error ? err.message : "Falha ao autenticar com Google";
       setError(message);
-    } finally {
-      setGoogleLoading(false);
+      setAuthenticating(false);
     }
   }
 
@@ -79,12 +76,27 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
+    <div className="relative mx-auto max-w-md space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
+      {authenticating && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950/80 backdrop-blur"
+        >
+          <div className="relative h-16 w-16">
+            <span className="absolute inset-0 rounded-full border-2 border-slate-600/60"></span>
+            <span className="absolute inset-0 rounded-full border-2 border-transparent border-t-sky-400 border-r-sky-400 animate-spin"></span>
+            <span className="absolute inset-[6px] rounded-full bg-slate-950/90"></span>
+          </div>
+          <p className="text-sm font-medium text-slate-200">Conectando ao Google...</p>
+          <p className="text-xs text-slate-400">Isso pode levar alguns segundos.</p>
+        </div>
+      )}
       {error && <p className="text-sm text-red-300">{error}</p>}
       <button
         type="button"
         onClick={handleGoogleSignIn}
-        disabled={loading || googleLoading}
+        disabled={authenticating}
         aria-label="Continuar com Google"
         className="w-full rounded-xl bg-white py-3 text-sm font-medium text-slate-900 hover:bg-slate-50 disabled:opacity-60 inline-flex items-center justify-center gap-3 ring-1 ring-black/10"
       >
@@ -95,7 +107,7 @@ export default function LoginForm() {
           <path fill="#4CAF50" d="M24 45c5.232 0 10.02-2.003 13.627-5.273l-6.287-5.316C29.193 35.46 26.725 36 24 36c-5.29 0-9.787-3.37-11.396-8.065l-6.54 5.04C9.862 40.566 16.39 45 24 45z"/>
           <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-1.627 4.676-6.136 8-11.303 8-5.29 0-9.787-3.37-11.396-8.065l-6.54 5.04C9.862 40.566 16.39 45 24 45c12.15 0 22-9.85 22-22 0-1.47-.15-2.9-.389-4.917z"/>
         </svg>
-        {googleLoading ? "Conectando..." : "Continuar com Google"}
+        {authenticating ? "Conectando..." : "Continuar com Google"}
       </button>
       <p className="text-xs text-slate-400">
         Apenas login com Google está disponível. Seu Google Agenda será conectado em seguida.
