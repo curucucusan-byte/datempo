@@ -1,3 +1,8 @@
+As regras, casos de uso e regras de negócio de todo o sistema, devem ficar em uma pasta chamada rules, e devem ter os arquivos atualizados das regras que vão mudando, por data. Cada vez que uma regra mudar, deve ser adicionado em um novo documento no dia atual e não deve ser alterado as regras dos dias anteriores nos documentos, e para mexer no projeto deve sempre se basear na última documentação de regras, as outras só servem para o histórico. E a cada implementação, alteração ou qualquer coisa que seja, até uma conversa de que algo seja decidido, as regras devem ser atualizadas sempre, a cada ação.
+
+Antes de fazer algo explique antes de executar qualquer ação para ser validado.
+
+
 # ZapAgenda – Regras de Negócio e Pendências
 
 ## 1. Entidades Centrais e Fontes de Dados

@@ -147,6 +147,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Data/hora inválida." }, { status: 400 });
     }
     const end = new Date(start.getTime() + minutes * 60 * 1000);
+    if (start.getTime() < Date.now()) {
+      return NextResponse.json({ error: "Escolha um horário no futuro." }, { status: 400 });
+    }
 
     if (!linkedCalendar.ownerUid) {
       return NextResponse.json(

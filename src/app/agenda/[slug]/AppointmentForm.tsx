@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { maskBR } from "@/lib/phone";
 
 type AvailabilityResponse = {
   ok: boolean;
@@ -21,6 +22,16 @@ type AppointmentResponse = {
   ics?: string;
   error?: string;
   timeZone?: string;
+  payment?:
+    | { status: "not_required" }
+    | {
+        status: "pending";
+        mode?: "manual" | "stripe";
+        amountCents?: number;
+        currency?: string;
+        pixKey?: string;
+        instructions?: string | null;
+      };
 };
 
 export default function AppointmentForm({ slug }: { slug: string }) {
@@ -28,17 +39,34 @@ export default function AppointmentForm({ slug }: { slug: string }) {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [customerName, setCustomerName] = useState<string>("");
-  const [customerPhone, setCustomerPhone] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [customerPhone, setCustomerPhone] = useState<string>("+55");
+  const [loadingSlots, setLoadingSlots] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AppointmentResponse | null>(null);
   const [slotMinutes, setSlotMinutes] = useState<number | null>(null);
+
+  // data mínima (hoje) no input date
+  const minDate = useMemo(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }, []);
+
+  // Preseleciona hoje ao abrir
+  useEffect(() => {
+    if (!selectedDate) {
+      setSelectedDate(minDate);
+    }
+  }, [minDate, selectedDate]);
 
   useEffect(() => {
     if (!selectedDate) return;
 
     const fetchAvailability = async () => {
-      setLoading(true);
+      setLoadingSlots(true);
       setError(null);
       setAvailableSlots([]);
       setSelectedSlot("");
@@ -53,7 +81,7 @@ export default function AppointmentForm({ slug }: { slug: string }) {
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro ao buscar disponibilidade.");
       } finally {
-        setLoading(false);
+        setLoadingSlots(false);
       }
     };
 
@@ -62,13 +90,13 @@ export default function AppointmentForm({ slug }: { slug: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     setError(null);
     setResult(null);
 
     if (!selectedDate || !selectedSlot || !customerName || !customerPhone) {
       setError("Por favor, preencha todos os campos.");
-      setLoading(false);
+      setSubmitting(false);
       return;
     }
 
@@ -100,86 +128,121 @@ export default function AppointmentForm({ slug }: { slug: string }) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao agendar.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="relative space-y-5 rounded-3xl border border-white/10 bg-slate-900/70 p-6">
+      {/* DATA */}
       <div>
-        <label htmlFor="date" className="block text-sm font-medium text-slate-300">Data:</label>
+        <label htmlFor="date" className="block text-sm font-medium text-slate-300">Data</label>
         <input
           type="date"
           id="date"
           value={selectedDate}
+          min={minDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-700 bg-slate-800 text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+          className="mt-1 block w-full rounded-xl border-white/10 bg-slate-800/80 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           required
         />
       </div>
 
+      {/* HORÁRIOS */}
       {selectedDate && (
         <div>
-          <label htmlFor="slot" className="block text-sm font-medium text-slate-300">Horário:</label>
-          <select
-            id="slot"
-            value={selectedSlot}
-            onChange={(e) => setSelectedSlot(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-700 bg-slate-800 text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
-            required
-            disabled={loading || availableSlots.length === 0}
-          >
-            <option value="">Selecione um horário</option>
-            {loading ? (
-              <option value="" disabled>Carregando horários...</option>
-            ) : availableSlots.length === 0 ? (
-              <option value="" disabled>Nenhum horário disponível para esta data.</option>
-            ) : (
-              availableSlots.map((slot) => (
-                <option key={slot} value={slot}>
-                  {new Date(slot).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                </option>
-              ))
-            )}
-          </select>
+          <div className="mb-1 text-sm font-medium text-slate-300">Horário</div>
+          {loadingSlots ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="h-10 rounded-xl bg-slate-800/60 animate-pulse" />
+              ))}
+            </div>
+          ) : availableSlots.length === 0 ? (
+            <div className="rounded-xl border border-white/10 bg-slate-800/60 p-3 text-sm text-slate-300">
+              Nenhum horário disponível para esta data.
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {availableSlots.map((slot) => {
+                const d = new Date(slot);
+                const label = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+                const past = d.getTime() < Date.now();
+                const selected = selectedSlot === slot;
+                return (
+                  <button
+                    type="button"
+                    key={slot}
+                    onClick={() => setSelectedSlot(slot)}
+                    disabled={past || submitting}
+                    className={`h-10 rounded-xl px-3 text-sm font-medium ring-1 transition ${
+                      selected
+                        ? "bg-emerald-500 text-slate-950 ring-emerald-400"
+                        : "bg-slate-800/80 text-slate-200 hover:bg-slate-700 ring-white/10"
+                    } ${past ? "opacity-40 pointer-events-none" : ""}`}
+                    aria-pressed={selected}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
+      {/* NOME */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-slate-300">Seu Nome:</label>
+        <label htmlFor="name" className="block text-sm font-medium text-slate-300">Seu nome</label>
         <input
           type="text"
           id="name"
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-700 bg-slate-800 text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+          className="mt-1 block w-full rounded-xl border-white/10 bg-slate-800/80 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          placeholder="Ex.: Ana Silva"
           required
         />
       </div>
 
+      {/* WHATSAPP */}
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-slate-300">Seu WhatsApp (com DDD, ex: +5511987654321):</label>
+        <label htmlFor="phone" className="block text-sm font-medium text-slate-300">Seu WhatsApp</label>
         <input
           type="tel"
           id="phone"
           value={customerPhone}
-          onChange={(e) => setCustomerPhone(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-700 bg-slate-800 text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+          onChange={(e) => setCustomerPhone(maskBR(e.target.value))}
+          className="mt-1 block w-full rounded-xl border-white/10 bg-slate-800/80 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          placeholder="+55 (11) 99999-0000"
           required
         />
       </div>
 
+      {/* CTA */}
       <button
         type="submit"
-        disabled={loading || !selectedSlot || !customerName || !customerPhone}
-        className="w-full rounded-md bg-emerald-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50"
+        disabled={submitting || !selectedSlot || !customerName || !customerPhone}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
       >
-        {loading ? "Agendando..." : "Agendar Horário"}
+        {submitting ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-900 border-r-transparent" />
+            Agendando...
+          </>
+        ) : (
+          "Agendar horário"
+        )}
       </button>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {/* MENSAGENS */}
+      {error && (
+        <p role="alert" aria-live="polite" className="text-sm text-red-300">
+          {error}
+        </p>
+      )}
       {result?.ok && (
-        <div className="space-y-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-xs text-emerald-100">
+        <div className="space-y-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
           <div className="font-semibold text-emerald-200">Agendamento registrado! Você receberá confirmação no WhatsApp.</div>
           {result.when && (
             <p>
@@ -190,7 +253,7 @@ export default function AppointmentForm({ slug }: { slug: string }) {
               })}
             </p>
           )}
-          {result.payment?.status === "pending" ? (
+          {result.payment?.status === "pending" && (
             <div className="space-y-1">
               <p>
                 Pagamento pendente: {new Intl.NumberFormat("pt-BR", {
@@ -201,7 +264,17 @@ export default function AppointmentForm({ slug }: { slug: string }) {
               {result.payment.pixKey && <p>Chave Pix: {result.payment.pixKey}</p>}
               {result.payment.instructions && <p>{result.payment.instructions}</p>}
             </div>
-          ) : null}
+          )}
+          {result.ics && (
+            <a
+              href={result.ics}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex rounded-lg bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20"
+            >
+              Adicionar ao calendário
+            </a>
+          )}
         </div>
       )}
     </form>
