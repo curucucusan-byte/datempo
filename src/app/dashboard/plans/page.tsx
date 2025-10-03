@@ -93,6 +93,10 @@ export default async function PlansPage() {
                   <div className="text-center py-3 text-emerald-300 font-medium">
                     ✓ Plano Atual
                   </div>
+                ) : plan.monthlyPrice === 0 ? (
+                  <div className="text-center py-3 text-slate-300">
+                    Incluído por padrão — basta continuar usando.
+                  </div>
                 ) : (
                   <PaymentButtons plan={plan.id} price={plan.monthlyPrice} />
                 )}
