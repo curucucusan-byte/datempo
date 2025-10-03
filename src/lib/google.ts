@@ -233,9 +233,24 @@ export async function createGoogleCalendarEvent(
     },
   };
 
+  console.info("[google:event:create:start]", {
+    ownerUid,
+    calendarId,
+    summary,
+    start: event.start,
+    attendeesCount: attendees?.length ?? 0,
+  });
+
   const res = await calendar.events.insert({
     calendarId: calendarId,
     requestBody: event,
+  });
+
+  console.info("[google:event:create:ok]", {
+    ownerUid,
+    calendarId,
+    eventId: res.data?.id,
+    htmlLink: res.data?.htmlLink,
   });
 
   return res.data;
