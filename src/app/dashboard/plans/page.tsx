@@ -90,7 +90,7 @@ export default async function PlansPage({
             const isCurrent = account.plan === plan.id;
             const isPaidPlan = plan.monthlyPrice > 0;
             const highlight = plan.id === "starter";
-            const summary = [
+            const highlights = [
               `${plan.limits.maxConnectedCalendars} agenda(s) Google`,
               `${plan.limits.maxAppointmentsPerMonth} agendamentos/mês`,
               `${plan.limits.whatsappMessagesIncludedPerMonth} mensagens WhatsApp incluídas`,
@@ -121,7 +121,7 @@ export default async function PlansPage({
                   : "Cancele quando quiser."}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-slate-200">
-                {summary.map((item) => (
+                {highlights.map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <svg viewBox="0 0 24 24" className="h-4 w-4 text-emerald-400" aria-hidden>
                       <path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" />
