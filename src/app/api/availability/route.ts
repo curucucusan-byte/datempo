@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 
 import { loadAppointments } from "@/lib/store";
-import { freeBusyForDate, getLinkedCalendarBySlug } from "@/lib/google"; // Adicionado getLinkedCalendarBySlug
+import { freeBusyForDate, getLinkedCalendarBySlugWithToken } from "@/lib/google";
 
 const WEEKDAYS = [
   "sunday",
@@ -55,6 +55,7 @@ function toUtcIso(dateParts: { year: number; month: number; day: number }, time:
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get("slug");
+  const token = searchParams.get("h") || searchParams.get("token") || undefined;
   const date = searchParams.get("date");
   if (!slug) {
     return NextResponse.json<ErrorResult>(
@@ -78,9 +79,9 @@ export async function GET(req: Request) {
     );
   }
 
-  const linkedCalendar = await getLinkedCalendarBySlug(slug); // Usar nova função
+  const linkedCalendar = await getLinkedCalendarBySlugWithToken(slug, token);
   if (!linkedCalendar) {
-    return NextResponse.json<ErrorResult>({ ok: false, error: "Agenda não encontrada." }, { status: 404 });
+    return NextResponse.json<ErrorResult>({ ok: false, error: "Agenda não encontrada ou link inválido." }, { status: 404 });
   }
 
   const slotMinutes = Math.max(5, Math.min(8 * 60, linkedCalendar.slotDurationMinutes ?? 60));

@@ -34,7 +34,7 @@ type AppointmentResponse = {
       };
 };
 
-export default function AppointmentForm({ slug }: { slug: string }) {
+export default function AppointmentForm({ slug, h }: { slug: string; h?: string }) {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>("");
@@ -71,7 +71,7 @@ export default function AppointmentForm({ slug }: { slug: string }) {
       setAvailableSlots([]);
       setSelectedSlot("");
       try {
-        const res = await fetch(`/api/availability?slug=${slug}&date=${selectedDate}`);
+        const res = await fetch(`/api/availability?slug=${encodeURIComponent(slug)}&date=${selectedDate}${h ? `&h=${encodeURIComponent(h)}` : ""}`);
         const data: AvailabilityResponse = await res.json();
         if (!res.ok || !data.ok) {
           throw new Error(data.error || "Erro ao carregar horários.");
@@ -106,6 +106,7 @@ export default function AppointmentForm({ slug }: { slug: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           slug,
+          h,
           customerName,
           customerPhone,
           datetime: selectedSlot, // O slot já é um ISO string

@@ -1,11 +1,9 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/agenda/[slug]/page.tsx
-
 import { notFound } from "next/navigation";
 import { getLinkedCalendarBySlugWithToken } from "@/lib/google";
-import AppointmentForm from "./AppointmentForm";
+import AppointmentForm from "../AppointmentForm";
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const linkedCalendar = await getLinkedCalendarBySlugWithToken(params.slug, undefined);
+export async function generateMetadata({ params }: { params: { slug: string; h: string } }) {
+  const linkedCalendar = await getLinkedCalendarBySlugWithToken(params.slug, params.h);
   if (!linkedCalendar) {
     return { title: "Agenda não encontrada" };
   }
@@ -15,9 +13,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function AgendaPage({ params }: { params: { slug: string } }) {
-  const linkedCalendar = await getLinkedCalendarBySlugWithToken(params.slug, undefined);
-
+export default async function AgendaPage({ params }: { params: { slug: string; h: string } }) {
+  const linkedCalendar = await getLinkedCalendarBySlugWithToken(params.slug, params.h);
   if (!linkedCalendar) {
     notFound();
   }
@@ -32,8 +29,9 @@ export default async function AgendaPage({ params }: { params: { slug: string } 
       </header>
 
       <main className="mx-auto max-w-xl px-6 pb-16">
-        <AppointmentForm slug={params.slug} />
+        <AppointmentForm slug={params.slug} h={params.h} />
       </main>
     </div>
   );
 }
+

@@ -112,6 +112,10 @@ export type LinkedCalendar = {
   prepaymentCurrency?: string | null;
   manualPixKey?: string | null;
   manualInstructions?: string | null;
+  // Acesso público com hash/token opcional
+  publicToken?: string | null;
+  // Suporte a logotipo em /public (opcional)
+  logoPath?: string | null; // exemplo: "/agenda-logos/{slug}/logo.webp"
 };
 
 export async function listCalendars(uid: string) {
@@ -156,6 +160,18 @@ export async function getLinkedCalendarBySlug(slug: string): Promise<LinkedCalen
   } catch {
     return null;
   }
+}
+
+export async function getLinkedCalendarBySlugWithToken(
+  slug: string,
+  token?: string | null,
+): Promise<LinkedCalendar | null> {
+  const cal = await getLinkedCalendarBySlug(slug);
+  if (!cal) return null;
+  const requiredToken = cal.publicToken?.trim();
+  if (!requiredToken) return cal; // sem token definido, acesso aberto (retrocompatibilidade)
+  if ((token || "").trim() === requiredToken) return cal;
+  return null;
 }
 
 export async function freeBusyForDate(uid: string, calendarId: string, date: string) {

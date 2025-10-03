@@ -7,7 +7,7 @@ import { addAppointment, loadAppointments, Appointment } from "@/lib/store";
 import { normalizeE164BR } from "@/lib/phone";
 import { rateLimit } from "@/lib/ratelimit";
 import { ensureAccount, getAccount, isAccountActive } from "@/lib/account";
-import { getLinkedCalendarBySlug, createGoogleCalendarEvent } from "@/lib/google"; // Importar createGoogleCalendarEvent
+import { getLinkedCalendarBySlugWithToken, createGoogleCalendarEvent } from "@/lib/google"; // Importar createGoogleCalendarEvent
 
 const DEFAULT_TIME_ZONE = process.env.DEFAULT_CALENDAR_TIMEZONE || "America/Sao_Paulo";
 
@@ -90,6 +90,7 @@ type Body = {
   datetime: string;
   durationMinutes?: number;
   timezone?: string;
+  h?: string; // token público opcional
 };
 
 function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
@@ -114,9 +115,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Campos obrigatórios faltando." }, { status: 400 });
     }
 
-    const linkedCalendar = await getLinkedCalendarBySlug(body.slug);
+    const linkedCalendar = await getLinkedCalendarBySlugWithToken(body.slug, body.h);
     if (!linkedCalendar) {
-      return NextResponse.json({ error: "Agenda não encontrada." }, { status: 404 });
+      return NextResponse.json({ error: "Agenda não encontrada ou link inválido." }, { status: 404 });
     }
 
     // Verifica se a conta do proprietário da agenda está ativa

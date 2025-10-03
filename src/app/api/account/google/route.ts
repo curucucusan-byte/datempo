@@ -7,6 +7,7 @@ import { authenticateRequest } from "@/lib/session";
 import { ensureAccount, getAccount } from "@/lib/account";
 import { CALENDAR_SWAP_INTERVAL_MS, getPlanCalendarLimit } from "@/lib/plans";
 import { CalendarWorkHours, LinkedCalendar } from "@/lib/google";
+import { normalizeE164BR } from "@/lib/phone";
 
 const DEFAULT_SLOT_DURATION_MINUTES = 60;
 
@@ -168,12 +169,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Informe id, summary, description e whatsappNumber do calendário" }, { status: 400 });
     }
 
-    let normalizedWhatsapp: string;
-    try {
-      normalizedWhatsapp = normalizeWhatsAppNumber(whatsappNumber);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "WhatsApp inválido";
-      return NextResponse.json({ error: message }, { status: 400 });
+    const normalizedWhatsapp = normalizeE164BR(whatsappNumber || "");
+    if (!normalizedWhatsapp) {
+      return NextResponse.json({ error: "WhatsApp inválido. Use +55DDDNÚMERO." }, { status: 400 });
     }
 
     const existsIdx = account.linkedCalendars.findIndex((c) => c.id === id);
@@ -402,7 +400,7 @@ export async function POST(req: Request) {
       description: typeof description === "string" && description.trim() ? description.trim() : current.description,
       whatsappNumber:
         typeof whatsappNumber === "string" && whatsappNumber.trim()
-          ? normalizeWhatsAppNumber(whatsappNumber)
+          ? (normalizeE164BR(whatsappNumber || "") || current.whatsappNumber)
           : current.whatsappNumber,
       slotDurationMinutes: sanitizeSlotDuration(
         typeof slotDurationMinutes !== "undefined" ? slotDurationMinutes : current.slotDurationMinutes
