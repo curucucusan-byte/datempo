@@ -4,6 +4,7 @@ import { getDb } from "@/lib/firebaseAdmin";
 import {
   ACTIVE_PLANS,
   DEFAULT_ACTIVE_PLAN_ID,
+  getPlanCalendarLimit,
   isActivePlan,
   type ActivePlanId,
   type PlanId,
@@ -56,6 +57,35 @@ function sanitizeReminders(plan: PlanId, value: ReminderSettings | undefined): R
   return { enabled: Boolean(base.enabled), windowMinutes: minutes };
 }
 
+function applyPlanConstraints(account: Account, plan: PlanId) {
+  const limit = getPlanCalendarLimit(plan);
+  const calendars = account.linkedCalendars.map((calendar, index) => {
+    const withinLimit = limit === 0 ? false : index < limit;
+    return {
+      ...calendar,
+      active: withinLimit ? calendar.active !== false : false,
+    };
+  });
+
+  let activeCalendarId = account.activeCalendarId ?? null;
+  if (activeCalendarId) {
+    const stillActive = calendars.some((calendar) => calendar.id === activeCalendarId && calendar.active);
+    if (!stillActive) {
+      activeCalendarId = calendars.find((calendar) => calendar.active)?.id ?? null;
+    }
+  } else {
+    activeCalendarId = calendars.find((calendar) => calendar.active)?.id ?? null;
+  }
+
+  const reminders = sanitizeReminders(plan, account.reminders);
+
+  return {
+    linkedCalendars: calendars,
+    activeCalendarId,
+    reminders,
+  } satisfies Pick<Account, "linkedCalendars" | "activeCalendarId" | "reminders">;
+}
+
 function normalizePlan(plan: unknown): PlanId {
   if (plan === "inactive") return "inactive";
   if (plan === "essencial" || plan === "pro") return plan;
@@ -85,13 +115,13 @@ async function maybeExpireTrial(account: Account): Promise<Account> {
   }
   const db = getDb();
   const updates: Partial<Account> = {
-    status: "canceled",
-    plan: "inactive",
+    status: "active",
+    plan: "essencial",
     updatedAt: nowIso(),
-    reminders: sanitizeReminders("inactive", account.reminders),
   };
   await db.collection(COLLECTION).doc(account.uid).set(updates, { merge: true });
-  return normalizeAccount({ ...account, ...updates });
+  const constrained = applyPlanConstraints({ ...account, ...updates }, "essencial");
+  return normalizeAccount({ ...account, ...updates, ...constrained });
 }
 
 export async function getAccount(uid: string): Promise<Account | null> {
@@ -194,9 +224,21 @@ export async function updateAccount(
   }
 
   // Garantir que plano ativo tenha lembranças coerentes
-  if (payload.plan === "inactive") {
-    payload.reminders = sanitizeReminders("inactive", payload.reminders ?? current.reminders);
-  }
+  const accountForConstraints: Account = {
+    ...current,
+    ...payload,
+    reminders: sanitizeReminders(nextPlan, payload.reminders ?? current.reminders),
+    linkedCalendars: payload.linkedCalendars ?? current.linkedCalendars,
+    activeCalendarId: payload.activeCalendarId ?? current.activeCalendarId,
+    trialEndsAt: payload.trialEndsAt ?? current.trialEndsAt,
+    createdAt: current.createdAt,
+    updatedAt: payload.updatedAt ?? current.updatedAt,
+  };
+
+  const constrained = applyPlanConstraints(accountForConstraints, nextPlan);
+  payload.linkedCalendars = constrained.linkedCalendars;
+  payload.activeCalendarId = constrained.activeCalendarId;
+  payload.reminders = constrained.reminders;
 
   const db = getDb();
   await db.collection(COLLECTION).doc(uid).set(payload, { merge: true });
@@ -206,4 +248,3 @@ export async function updateAccount(
   }
   return refreshed;
 }
-
