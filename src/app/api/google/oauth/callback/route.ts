@@ -28,20 +28,36 @@ const DEFAULT_PREPAYMENT = {
   manualInstructions: "",
 };
 
+function redirectWithParams(req: Request, pathname: string, params: Record<string, string | undefined>) {
+  const target = new URL(pathname, req.url);
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value !== "undefined" && value !== null) {
+      target.searchParams.set(key, value);
+    }
+  }
+  return NextResponse.redirect(target);
+}
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const error = url.searchParams.get("error");
   if (error) {
-    return NextResponse.redirect(`/dashboard?tab=agenda&google_error=${encodeURIComponent(error)}`);
+    return redirectWithParams(req, "/dashboard", {
+      tab: "agenda",
+      google_error: error,
+    });
   }
   if (!code) {
-    return NextResponse.redirect(`/dashboard?tab=agenda&google_error=missing_code`);
+    return redirectWithParams(req, "/dashboard", {
+      tab: "agenda",
+      google_error: "missing_code",
+    });
   }
 
   const user = await getAuthenticatedUser();
   if (!user) {
-    return NextResponse.redirect(`/login`);
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   try {
@@ -102,9 +118,15 @@ export async function GET(req: Request) {
     } catch {
       // best-effort; se falhar, a tela permitirá vincular manualmente
     }
-    return NextResponse.redirect(`/dashboard?tab=agenda&google_connected=1`);
+    return redirectWithParams(req, "/dashboard", {
+      tab: "agenda",
+      google_connected: "1",
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.redirect(`/dashboard?tab=agenda&google_error=${encodeURIComponent(message)}`);
+    return redirectWithParams(req, "/dashboard", {
+      tab: "agenda",
+      google_error: message,
+    });
   }
 }
