@@ -52,6 +52,13 @@ function addMonths(date: Date, months: number): Date {
   return result;
 }
 
+async function downgradeAccountToFree(uid: string) {
+  await updateAccount(uid, {
+    plan: "essencial",
+    status: "active",
+  });
+}
+
 // Criar pagamento via cartão de crédito (assinatura recorrente)
 export async function createCreditCardSubscription(
   uid: string,
@@ -195,12 +202,13 @@ export async function updatePaymentStatus(
 
   await db.collection(PAYMENTS_COLLECTION).doc(paymentIntentId).update(updates);
 
-  // Se o pagamento foi bem-sucedido, atualizar a conta do usuário
   if (status === "succeeded") {
     await updateAccount(payment.uid, {
       plan: payment.plan,
       status: "active",
     });
+  } else if (status === "failed" || status === "canceled") {
+    await downgradeAccountToFree(payment.uid);
   }
 }
 
@@ -241,16 +249,18 @@ export async function updateSubscriptionStatus(
   await db.collection(SUBSCRIPTIONS_COLLECTION).doc(subscriptionId).update(updates);
 
   // Atualizar a conta do usuário baseado no status da assinatura
-  if (status === "active") {
+  if (status === "active" || status === "trialing") {
     await updateAccount(subscription.uid, {
-      plan: subscription.plan,
-      status: "active",
+      plan: subscription.plan as ActivePlanId,
+      status: status === "active" ? "active" : "trial",
     });
-  } else if (status === "canceled" || status === "past_due") {
-    await updateAccount(subscription.uid, {
-      plan: "inactive",
-      status: "canceled",
-    });
+  } else if (
+    status === "canceled" ||
+    status === "past_due" ||
+    status === "incomplete" ||
+    status === "incomplete_expired"
+  ) {
+    await downgradeAccountToFree(subscription.uid);
   }
 }
 
