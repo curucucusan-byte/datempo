@@ -84,17 +84,25 @@ export default async function PlansPage({
       )}
 
       <main className="mx-auto max-w-6xl px-6 pb-16 space-y-12">
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3">
           {["free", "starter", "pro"].map((planKey) => {
             const plan = ACTIVE_PLANS[planKey as keyof typeof ACTIVE_PLANS];
             const isCurrent = account.plan === plan.id;
             const isPaidPlan = plan.monthlyPrice > 0;
             const highlight = plan.id === "starter";
+            const summary = [
+              `${plan.limits.maxConnectedCalendars} agenda(s) Google`,
+              `${plan.limits.maxAppointmentsPerMonth} agendamentos/mês`,
+              `${plan.limits.whatsappMessagesIncludedPerMonth} mensagens WhatsApp incluídas`,
+              plan.limits.maxAutoRemindersPerAppointment > 0
+                ? `Até ${plan.limits.maxAutoRemindersPerAppointment} lembretes/atendimento`
+                : "Sem lembretes automáticos",
+            ];
 
             return (
             <div
               key={plan.id}
-              className={`rounded-3xl border p-6 ${
+              className={`flex h-full flex-col rounded-3xl border p-6 ${
                 highlight
                   ? "border-emerald-400/60 bg-emerald-500/10"
                   : "border-white/10 bg-slate-900/60"
@@ -102,32 +110,27 @@ export default async function PlansPage({
             >
               <div className="flex items-baseline justify-between">
                 <h2 className="text-xl font-semibold">{plan.label}</h2>
-                {highlight && <span className="text-xs text-emerald-300">Recomendado</span>}
+                {highlight && <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-xs text-emerald-300">Recomendado</span>}
               </div>
-              <div className="mt-3 text-2xl font-bold">{plan.priceDisplay}</div>
-              {plan.trialDays > 0 ? (
-                <p className="mt-2 text-sm text-slate-300">
-                  {plan.trialDays} dia(s) para testar sem custo.
-                </p>
-              ) : plan.monthlyPrice === 0 ? (
-                <p className="mt-2 text-sm text-slate-400">Plano permanente sem mensalidade.</p>
-              ) : (
-                <p className="mt-2 text-sm text-slate-300">Comece agora e cancele quando quiser.</p>
-              )}
+              <div className="mt-1 text-2xl font-bold">{plan.priceDisplay}</div>
+              <p className="mt-1 text-sm text-slate-300">
+                {plan.monthlyPrice === 0
+                  ? "Sem mensalidade."
+                  : plan.trialDays > 0
+                  ? `${plan.trialDays} dia(s) de teste.`
+                  : "Cancele quando quiser."}
+              </p>
               <ul className="mt-4 space-y-2 text-sm text-slate-200">
-                {plan.bullets.map((perk) => (
-                  <li key={perk} className="flex items-center gap-2">
-                    <svg viewBox="0 0 24 24" className="h-4 w-4 text-emerald-400">
-                      <path
-                        fill="currentColor"
-                        d="M12 2a10 10 0 1 0 10 10A10.012 10.012 0 0 0 12 2Zm4.7 7.29-5.06 5.06a1 1 0 0 1-1.41 0l-2.12-2.12a1 1 0 1 1 1.41-1.41l1.41 1.41 4.36-4.36a1 1 0 1 1 1.41 1.41Z"
-                      />
+                {summary.map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <svg viewBox="0 0 24 24" className="h-4 w-4 text-emerald-400" aria-hidden>
+                      <path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" />
                     </svg>
-                    <span>{perk}</span>
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
-              <div className="mt-6">
+              <div className="mt-auto pt-4 border-t border-white/10">
                 {isCurrent ? (
                   <div className="text-center py-3 text-emerald-300 font-medium">
                     ✓ Plano Atual

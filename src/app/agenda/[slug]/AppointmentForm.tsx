@@ -22,6 +22,7 @@ type AppointmentResponse = {
   ics?: string;
   error?: string;
   timeZone?: string;
+  wa?: { to?: string | undefined; link: string; text?: string | null; mode?: string };
   payment?:
     | { status: "not_required" }
     | {
@@ -244,7 +245,7 @@ export default function AppointmentForm({ slug, h }: { slug: string; h?: string 
       )}
       {result?.ok && (
         <div className="space-y-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-          <div className="font-semibold text-emerald-200">Agendamento registrado! Você receberá confirmação no WhatsApp.</div>
+          <div className="font-semibold text-emerald-200">Agendamento registrado!</div>
           {result.when && (
             <p>
               Horário: {new Date(result.when).toLocaleString("pt-BR", {
@@ -253,6 +254,24 @@ export default function AppointmentForm({ slug, h }: { slug: string; h?: string 
                 timeZone: result.timeZone,
               })}
             </p>
+          )}
+          {result.wa?.link && (
+            <div className="space-y-1">
+              <p>
+                Para finalizar sem custo, abra o WhatsApp e envie a confirmação para a agenda.
+              </p>
+              <a
+                href={result.wa.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+              >
+                Enviar confirmação pelo WhatsApp
+              </a>
+              <p className="text-xs text-emerald-200/80">
+                O texto já vai preenchido. Clique para abrir no WhatsApp.
+              </p>
+            </div>
           )}
           {result.payment?.status === "pending" && (
             <div className="space-y-1">

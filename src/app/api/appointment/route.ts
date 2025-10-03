@@ -249,11 +249,16 @@ export async function POST(req: Request) {
     confirmMsgLines.push("\nVocê receberá lembretes automáticos pelo WhatsApp se a agenda habilitou a função.");
     const confirmMsg = confirmMsgLines.join("\n");
 
-    try {
-      await sendWhats({ to: phone, message: confirmMsg });
-    } catch (err) {
-      console.error("[apt:sendWhats:customer:error]", err);
-      // não interromper o agendamento por falha de envio
+    // Primeira mensagem: permitir modo "link" para o cliente iniciar a conversa no WhatsApp
+    // Evita custo de mensagem iniciada pela empresa.
+    const firstMsgMode = (process.env.WA_FIRST_MESSAGE_MODE || "api").toLowerCase();
+    if (firstMsgMode === "api") {
+      try {
+        await sendWhats({ to: phone, message: confirmMsg });
+      } catch (err) {
+        console.error("[apt:sendWhats:customer:error]", err);
+        // não interromper o agendamento por falha de envio
+      }
     }
 
     if (ownerPhone) {
@@ -316,6 +321,21 @@ export async function POST(req: Request) {
       requiresPrepayment,
     });
 
+    // Montar link Click-to-WhatsApp para o cliente falar com a agenda/owner
+    // Assim, o cliente inicia a conversa e podemos evitar custo de template/initiated.
+    let waLink: string | null = null;
+    let waText: string | null = null;
+    if (ownerPhone) {
+      const toDigits = ownerPhone.replace(/\D/g, "");
+      const consentLine = "Aceito receber lembretes sobre este agendamento.";
+      const agendaLabel = linkedCalendar.description || linkedCalendar.summary || linkedCalendar.slug || "ZapAgenda";
+      waText =
+        `Olá! Sou ${body.customerName}. Acabei de agendar com ${agendaLabel}. ` +
+        `Data/Hora: ${humanDate}. ${consentLine}`;
+      const encoded = encodeURIComponent(waText);
+      waLink = `https://wa.me/${toDigits}?text=${encoded}`;
+    }
+
     return NextResponse.json({
       ok: true,
       id: appt.id,
@@ -323,6 +343,15 @@ export async function POST(req: Request) {
       minutes,
       timeZone,
       ics: icsUrl,
+      wa:
+        waLink
+          ? {
+              to: ownerPhone,
+              link: waLink,
+              text: waText,
+              mode: firstMsgMode,
+            }
+          : undefined,
       payment: requiresPrepayment
         ? {
             status: "pending" as const,
