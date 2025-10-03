@@ -100,6 +100,9 @@ function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
 }
 
 export async function POST(req: Request) {
+  const debugContext: Record<string, unknown> = {
+    requestId: `apt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+  };
   try {
     // ---------- rate-limit por IP (8 req/min) ----------
     const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "local";
@@ -113,11 +116,15 @@ export async function POST(req: Request) {
 
     // ---------- body e validações ----------
     const body = (await req.json()) as Body;
+    debugContext.slug = body?.slug;
+    debugContext.customer = body?.customerName;
     if (!body?.slug || !body?.customerName || !body?.customerPhone || !body?.datetime) {
       return NextResponse.json({ error: "Campos obrigatórios faltando." }, { status: 400 });
     }
 
     const linkedCalendar = await getLinkedCalendarBySlugWithToken(body.slug, body.h);
+    debugContext.linkedCalendarId = linkedCalendar?.id;
+    debugContext.linkedCalendarOwner = linkedCalendar?.ownerUid;
     if (!linkedCalendar) {
       return NextResponse.json({ error: "Agenda não encontrada ou link inválido." }, { status: 404 });
     }
@@ -128,6 +135,12 @@ export async function POST(req: Request) {
       ownerAccount = await ensureAccount(linkedCalendar.ownerUid, null);
       if (!isAccountActive(ownerAccount)) {
         // Não expor detalhes de billing ao cliente final
+        console.warn("[apt:create] owner account inactive", {
+          ...debugContext,
+          ownerStatus: ownerAccount?.status,
+          ownerPlan: ownerAccount?.plan,
+          ownerTrialEndsAt: ownerAccount?.trialEndsAt,
+        });
         return NextResponse.json(
           { error: "Agenda indisponível no momento. Tente novamente mais tarde." },
           { status: 403 },
@@ -155,6 +168,7 @@ export async function POST(req: Request) {
     }
 
     if (!linkedCalendar.ownerUid) {
+      console.error("[apt:create] linked calendar without owner", debugContext);
       return NextResponse.json(
         { error: "Agenda indisponível no momento. Tente novamente mais tarde." },
         { status: 503 },
@@ -366,7 +380,10 @@ export async function POST(req: Request) {
           },
     });
   } catch (err: unknown) {
-    console.error("appointment error:", err);
+    console.error("[apt:create] unexpected failure", {
+      ...debugContext,
+      error: err instanceof Error ? { message: err.message, stack: err.stack } : err,
+    });
     return NextResponse.json(
       { error: "Agenda indisponível no momento. Tente novamente mais tarde." },
       { status: 500 },
