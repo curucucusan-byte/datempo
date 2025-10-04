@@ -79,7 +79,17 @@ export async function getAuthenticatedClient(uid: string): Promise<OAuth2Client 
   const tokens = await getTokens(uid);
   if (!tokens) return null;
   const client = getOAuthClient();
-  client.setCredentials(tokens);
+  
+  // Filter out null values before setting credentials
+  const credentials = {
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    expiry_date: tokens.expiry_date,
+    scope: tokens.scope ?? undefined,
+    token_type: tokens.token_type ?? undefined,
+  };
+  
+  client.setCredentials(credentials);
   client.on("tokens", async (t) => {
     try {
       await storeTokens(uid, {
@@ -206,8 +216,11 @@ export async function createGoogleCalendarEvent(
 ) {
   const auth = await getAuthenticatedClient(ownerUid);
   if (!auth) {
-    throw new Error("Cliente Google não autenticado para criar evento.");
+    const errorMsg = `Cliente Google não autenticado para criar evento. OwnerUid: ${ownerUid}`;
+    console.error("[google:event:create:no-auth]", { ownerUid, calendarId });
+    throw new Error(errorMsg);
   }
+
   const calendar = google.calendar({ version: "v3", auth });
 
   const tz = timeZone && isValidTimeZone(timeZone) ? timeZone : DEFAULT_CALENDAR_TIMEZONE;
@@ -241,19 +254,34 @@ export async function createGoogleCalendarEvent(
     attendeesCount: attendees?.length ?? 0,
   });
 
-  const res = await calendar.events.insert({
-    calendarId: calendarId,
-    requestBody: event,
-  });
+  try {
+    const res = await calendar.events.insert({
+      calendarId: calendarId,
+      requestBody: event,
+    });
 
-  console.info("[google:event:create:ok]", {
-    ownerUid,
-    calendarId,
-    eventId: res.data?.id,
-    htmlLink: res.data?.htmlLink,
-  });
+    console.info("[google:event:create:ok]", {
+      ownerUid,
+      calendarId,
+      eventId: res.data?.id,
+      htmlLink: res.data?.htmlLink,
+    });
 
-  return res.data;
+    return res.data;
+  } catch (error: unknown) {
+    console.error("[google:event:create:error]", {
+      ownerUid,
+      calendarId,
+      error: error instanceof Error ? error.message : String(error),
+      errorDetails: error,
+    });
+
+    // Re-lançar com mensagem mais específica
+    if (error instanceof Error) {
+      throw new Error(`Falha ao criar evento no Google Calendar: ${error.message}`);
+    }
+    throw error;
+  }
 }
 
 function isValidTimeZone(tz: string) {

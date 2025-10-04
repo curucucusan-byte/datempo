@@ -222,16 +222,48 @@ export async function POST(req: Request) {
 
     const attendees = ownerAccount?.email ? [{ email: ownerAccount.email }] : [];
 
-    await createGoogleCalendarEvent(
-      linkedCalendar.ownerUid,
-      linkedCalendar.id,
-      eventSummary,
-      eventDescription,
-      start,
-      end,
-      attendees,
-      timeZone,
-    );
+    let googleEventId: string | null = null;
+    let googleEventLink: string | null = null;
+    let calendarSyncWarning: string | null = null;
+
+    try {
+      console.info("[apt:google:event:attempting]", {
+        ownerUid: linkedCalendar.ownerUid,
+        calendarId: linkedCalendar.id,
+        summary: eventSummary,
+        start: start.toISOString(),
+        end: end.toISOString(),
+      });
+
+      const googleEvent = await createGoogleCalendarEvent(
+        linkedCalendar.ownerUid,
+        linkedCalendar.id,
+        eventSummary,
+        eventDescription,
+        start,
+        end,
+        attendees,
+        timeZone,
+      );
+
+      googleEventId = googleEvent?.id || null;
+      googleEventLink = googleEvent?.htmlLink || null;
+
+      console.info("[apt:google:event:success]", {
+        eventId: googleEventId,
+        htmlLink: googleEventLink,
+      });
+    } catch (googleError) {
+      console.error("[apt:google:event:failed]", {
+        ownerUid: linkedCalendar.ownerUid,
+        calendarId: linkedCalendar.id,
+        error: googleError instanceof Error ? googleError.message : String(googleError),
+        stack: googleError instanceof Error ? googleError.stack : undefined,
+      });
+
+      // Não falhar o agendamento inteiro, mas avisar
+      calendarSyncWarning = "Agendamento registrado, mas houve falha ao sincronizar com o Google Calendar. Entre em contato com o suporte.";
+    }
 
     // ---------- mensagens ----------
     const humanDate = start.toLocaleString("pt-BR", {
@@ -357,6 +389,13 @@ export async function POST(req: Request) {
       minutes,
       timeZone,
       ics: icsUrl,
+      googleEvent: googleEventId
+        ? {
+            id: googleEventId,
+            htmlLink: googleEventLink,
+          }
+        : null,
+      warning: calendarSyncWarning,
       wa:
         waLink
           ? {

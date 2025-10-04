@@ -21,6 +21,7 @@ type AppointmentResponse = {
   minutes?: number;
   ics?: string;
   error?: string;
+  warning?: string; // NOVO: warning do Google Calendar
   timeZone?: string;
   wa?: { to?: string | undefined; link: string; text?: string | null; mode?: string };
   payment?:
@@ -254,6 +255,11 @@ export default function AppointmentForm({ slug, h }: { slug: string; h?: string 
                 timeZone: result.timeZone,
               })}
             </p>
+          )}
+          {result.warning && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              ⚠️ {result.warning}
+            </div>
           )}
           {result.wa?.link && (
             <div className="space-y-2">
