@@ -1,4 +1,4 @@
-"use client";
+// server component; client-only pieces são componentes isolados
 
 import Image from "next/image";
 import Link from "next/link";
@@ -84,10 +84,7 @@ export default function LandingWhatsApp() {
     },
   ];
 
-  const scrollToFaqSection = () => {
-    const faqSection = document.getElementById("faq");
-    faqSection?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  // Evita uso de document/scroll em server; navegação usa âncoras
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
@@ -177,13 +174,7 @@ export default function LandingWhatsApp() {
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
-               <button
-                  type="button"
-                  onClick={scrollToFaqSection}
-                  className="text-emerald-300 hover:text-emerald-200"
-                >
-                  Dúvidas?
-                </button>
+                <a href="#faq" className="text-emerald-300 hover:text-emerald-200">Dúvidas?</a>
                 </div>
                
               </div>
