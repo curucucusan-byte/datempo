@@ -19,17 +19,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(appBaseUrl),
-  title: "ZapAgenda — Agendamentos via WhatsApp",
-  description: "Cliente escolhe horário, você recebe no WhatsApp.",
+  title: "Agende Mais — Agendamentos Automáticos",
+  description: "Sistema de agendamento online com WhatsApp e Google Calendar. Reduza no-shows e aumente seus agendamentos.",
   openGraph: {
-    title: "ZapAgenda",
-    description: "Agendamentos via WhatsApp",
-    url: "https://seu-dominio.vercel.app",
-    siteName: "ZapAgenda",
+    title: "Agende Mais",
+    description: "Mais agendamentos, menos esforço. Automatize com WhatsApp e Google Calendar.",
+    url: "https://zap-agenda.onrender.com",
+    siteName: "Agende Mais",
     images: [{ url: "/og.png", width: 1200, height: 630 }],
     locale: "pt_BR", type: "website",
   },
-  twitter: { card: "summary_large_image", creator: "@seuuser" },
+  twitter: { card: "summary_large_image", creator: "@agendemais" },
 };
 
 

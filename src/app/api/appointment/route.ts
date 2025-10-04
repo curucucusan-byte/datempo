@@ -284,7 +284,7 @@ export async function POST(req: Request) {
       : null;
 
     const confirmMsgLines = [
-      `✅ *ZapAgenda* — Agendamento registrado!`,
+      `✅ *Agende Mais* — Agendamento registrado!`,
       `Agenda: *${linkedCalendar.description || linkedCalendar.summary}*`,
       `Cliente: *${body.customerName}*`,
       `Data/Hora: *${humanDate}*`,
@@ -374,7 +374,7 @@ export async function POST(req: Request) {
     if (ownerPhone) {
       const toDigits = ownerPhone.replace(/\D/g, "");
       const consentLine = "Aceito receber lembretes sobre este agendamento.";
-      const agendaLabel = linkedCalendar.description || linkedCalendar.summary || linkedCalendar.slug || "ZapAgenda";
+      const agendaLabel = linkedCalendar.description || linkedCalendar.summary || linkedCalendar.slug || "Agende Mais";
       waText =
         `Olá! Sou ${body.customerName}. Acabei de agendar com ${agendaLabel}. ` +
         `Data/Hora: ${humanDate}. ${consentLine}`;

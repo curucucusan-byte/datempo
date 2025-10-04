@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Política de Privacidade — ZapAgenda",
-  description: "Saiba como o ZapAgenda coleta, utiliza e protege dados pessoais.",
+  title: "Política de Privacidade — Agende Mais",
+  description: "Saiba como o Agende Mais coleta, utiliza e protege dados pessoais.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
               </div>
-              <span className="text-lg font-bold text-slate-900">ZapAgenda</span>
+              <span className="text-lg font-bold text-slate-900">Agende Mais</span>
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium text-slate-600">
               <Link href="/termos" className="hover:text-slate-900">Termos</Link>

@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Minha Agenda — ZapAgenda",
+  title: "Minha Agenda — Agende Mais",
 };
 
 export default async function MinhaAgendaPage() {

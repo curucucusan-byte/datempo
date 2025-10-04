@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return { title: "Agenda não encontrada" };
   }
   return {
-    title: `Agende com ${linkedCalendar.summary} — ZapAgenda`,
+    title: `Agende com ${linkedCalendar.summary} — Agende Mais`,
     description: linkedCalendar.description,
   };
 }
