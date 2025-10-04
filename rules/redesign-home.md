@@ -19,9 +19,11 @@ Impacto
 - Nenhuma alteração na rota principal `/` — isso evita regressões.
 - Facilita testes A/B manuais apontando tráfego para `/redesign` quando desejado.
 
+
 Migração / Próximos passos
 - Se o redesign for aprovado, mover o conteúdo para `app/page.tsx` ou configurar roteamento condicional via feature flag.
 - Adicionar testes de snapshot e verificação de build (CI) para garantir que a nova rota não quebre o build.
+- A nova rota consome `ACTIVE_PLANS` de `src/lib/plans.ts` e mostra detalhes completos de cada plano (limites, bullets, overage, features).
 
 Registro de commit
 - feat(redesign): add /redesign route and documentation

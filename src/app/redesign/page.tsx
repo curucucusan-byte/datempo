@@ -1,7 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ACTIVE_PLANS, type ActivePlanId } from "@/lib/plans";
 
 export default function RedesignHome() {
+  const planOrder: ActivePlanId[] = ["free", "starter", "pro"];
+  const plans = planOrder.map((id) => ACTIVE_PLANS[id]);
+
+  function formatNumber(n: number) {
+    return new Intl.NumberFormat("pt-BR").format(n);
+  }
+
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <header className="mx-auto max-w-6xl px-6 py-8 flex items-center justify-between">
@@ -107,23 +115,60 @@ export default function RedesignHome() {
         </section>
 
         <section id="pricing" className="mt-12">
-          <h2 className="text-2xl font-semibold">Planos simples</h2>
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-6 rounded-[20px] bg-rose-50">
-              <div className="text-sm text-rose-600 font-semibold">Free</div>
-              <div className="mt-2 text-xl font-bold">R$ 0</div>
-              <p className="mt-2 text-sm text-slate-600">1 agenda • recursos básicos</p>
-            </div>
-            <div className="p-6 rounded-[20px] bg-sky-50 border-2 border-sky-200">
-              <div className="text-sm text-sky-600 font-semibold">Starter</div>
-              <div className="mt-2 text-xl font-bold">R$ 39</div>
-              <p className="mt-2 text-sm text-slate-600">Até 3 agendas • lembretes WhatsApp</p>
-            </div>
-            <div className="p-6 rounded-[20px] bg-emerald-50">
-              <div className="text-sm text-emerald-600 font-semibold">Pro</div>
-              <div className="mt-2 text-xl font-bold">R$ 149</div>
-              <p className="mt-2 text-sm text-slate-600">Até 20 agendas • suporte prioritário</p>
-            </div>
+          <h2 className="text-2xl font-semibold">Planos</h2>
+
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {plans.map((plan) => (
+              <div key={plan.id} className="p-6 rounded-[20px] border border-slate-100 bg-[rgba(250,250,250,0.9)] shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-slate-500">{plan.label}</div>
+                    <div className="mt-1 text-2xl font-bold">{plan.priceDisplay}</div>
+                    {plan.trialDays > 0 && <div className="text-xs text-slate-500">Teste grátis: {plan.trialDays} dias</div>}
+                  </div>
+                  <div className="text-right text-sm text-slate-500">
+                    <div>Agendas: <span className="font-semibold text-slate-800">{plan.limits.maxConnectedCalendars}</span></div>
+                    <div>Reservas/mês: <span className="font-semibold text-slate-800">{formatNumber(plan.limits.maxAppointmentsPerMonth)}</span></div>
+                  </div>
+                </div>
+
+                <div className="mt-4 text-sm text-slate-700">
+                  <ul className="space-y-2">
+                    {plan.bullets.map((b, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <span className="mt-1 h-2 w-2 rounded-full bg-slate-300" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                  <div className="rounded-md bg-white/60 p-2 border border-slate-100">
+                    <div className="font-medium">Mensagens incluídas</div>
+                    <div className="mt-1">{formatNumber(plan.limits.whatsappMessagesIncludedPerMonth)} / mês</div>
+                    {plan.overage.whatsappMessageBRL !== null && (
+                      <div className="mt-1 text-emerald-700">Overage: R$ {plan.overage.whatsappMessageBRL?.toFixed(2)} / msg</div>
+                    )}
+                  </div>
+                  <div className="rounded-md bg-white/60 p-2 border border-slate-100">
+                    <div className="font-medium">Lembretes</div>
+                    <div className="mt-1">{plan.limits.maxAutoRemindersPerAppointment > 0 ? `${plan.limits.maxAutoRemindersPerAppointment} por agendamento` : "Não incluso"}</div>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {plan.features.paymentAtBooking && <span className="px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs">Pagamento na reserva</span>}
+                  {plan.features.reviewsGoogle && <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs">Reviews Google</span>}
+                  {plan.features.noShowPaymentOption && <span className="px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs">Cobrança no-show</span>}
+                </div>
+
+                <div className="mt-6 flex items-center justify-between">
+                  <a href="#" className="rounded-full bg-slate-900 px-4 py-2 text-white text-sm font-semibold">Escolher {plan.label}</a>
+                  <a href="#" className="text-sm text-slate-500">Mais detalhes</a>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
