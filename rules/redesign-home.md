@@ -25,5 +25,10 @@ Migração / Próximos passos
 - Adicionar testes de snapshot e verificação de build (CI) para garantir que a nova rota não quebre o build.
 - A nova rota consome `ACTIVE_PLANS` de `src/lib/plans.ts` e mostra detalhes completos de cada plano (limites, bullets, overage, features).
 
+Alterações visuais recentes
+- Ajustei tipografia para tamanhos maiores na rota `/redesign` (headings, textos e bullets) para melhorar legibilidade.
+- Substituí tonalidades "rose/red" por variantes verdes/emerald (badges, botões principais e backgrounds) para evitar associação negativa.
+ - Aprimorei responsividade para mobile: header empilha, CTAs se tornam full-width no mobile, cards e paddings ajustados para toque e leitura.
+
 Registro de commit
 - feat(redesign): add /redesign route and documentation
