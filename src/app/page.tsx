@@ -1,307 +1,405 @@
-// server component; client-only pieces são componentes isolados
-
 import Image from "next/image";
 import Link from "next/link";
+import { ACTIVE_PLANS, type ActivePlanId } from "@/lib/plans";
 
-import { ACTIVE_PLANS } from "@/lib/plans";
-import VerticalFAQCarousel from "@/components/VerticalFAQCarousel";
+export default function HomeV2() {
+  const planOrder: ActivePlanId[] = ["free", "starter", "pro"];
+  const plans = planOrder.map((id) => ACTIVE_PLANS[id]);
 
-const FAQ_ITEMS = [
-  {
-    q: "Precisa instalar app?",
-    a: "Não. Você compartilha um link ZapAgenda e o cliente conclui o agendamento direto no WhatsApp.",
-  },
-  {
-    q: "Como funciona com Google Agenda?",
-    a: "Basta autorizar com sua conta do Google. Sem a autorização, a sincronização pausa para evitar conflitos.",
-  },
-  {
-    q: "Posso cancelar quando quiser?",
-    a: "Sim. São planos mensais sem fidelidade. Você controla tudo pelo painel com apenas alguns cliques.",
-  },
-  {
-    q: "E os lembretes automáticos?",
-    a: "Nos planos Starter e Pro você ativa lembretes no WhatsApp, escolhe antecedência e decide se quer copiar o time.",
-  },
-  {
-    q: "Como proteger contra não comparecimento?",
-    a: "Ative o pré-pagamento direto no ZapAgenda: configure valores, Pix ou cartão e só confirma a reserva após o cliente pagar.",
-  },
-  {
-    q: "O cliente vê qual tela ao agendar?",
-    a: "Ele acessa um formulário limpo com nome, WhatsApp, serviço e horários livres — igual ao exemplo acima e ao demo na seção FAQ.",
-  },
-];
-
-// Landing minimalista para validar interesse no Micro‑SaaS: Agendamento via WhatsApp
-// Estilo: Tailwind (classes utilitárias), sem dependências externas.
-// Componente único, pronto para colar em app/page.tsx (App Router, Next.js 13+) ou pages/index.tsx (modelo antigo).
-
-export default function LandingWhatsApp() {
-  const faqPreviewItems = FAQ_ITEMS.map((faq) => (
-    <div key={faq.q} className="space-y-1">
-      <div className="font-semibold text-slate-200">{faq.q}</div>
-      <p className="text-slate-400 text-xs leading-relaxed">{faq.a}</p>
-    </div>
-  ));
-
-  const planOrder: (keyof typeof ACTIVE_PLANS)[] = ["free", "starter", "pro"];
-  const planData = planOrder.map((id) => ACTIVE_PLANS[id]);
-  const numberFormatter = new Intl.NumberFormat("pt-BR");
-  const comparisonRows: {
-    label: string;
-    getValue: (plan: (typeof planData)[number]) => string;
-  }[] = [
-    {
-      label: "Preço mensal",
-      getValue: (plan) => plan.priceDisplay,
-    },
-    {
-      label: "Agendas conectadas",
-      getValue: (plan) =>
-        plan.limits.maxConnectedCalendars === 1
-          ? "1 agenda"
-          : `Até ${plan.limits.maxConnectedCalendars} agendas`,
-    },
-    {
-      label: "Agendamentos por mês",
-      getValue: (plan) => `${numberFormatter.format(plan.limits.maxAppointmentsPerMonth)} reservas`,
-    },
-    {
-      label: "Mensagens WhatsApp incluídas",
-      getValue: (plan) => `${numberFormatter.format(plan.limits.whatsappMessagesIncludedPerMonth)} / mês`,
-    },
-    {
-      label: "Lembretes automáticos",
-      getValue: (plan) =>
-        plan.limits.maxAutoRemindersPerAppointment > 0
-          ? `Até ${plan.limits.maxAutoRemindersPerAppointment} por agendamento`
-          : "Não incluso",
-    },
-    {
-      label: "Reserva paga (anti-furo)",
-      getValue: (plan) => (plan.features.paymentAtBooking ? "Disponível" : "—"),
-    },
-  ];
-
-  // Evita uso de document/scroll em server; navegação usa âncoras
+  function formatNumber(n: number) {
+    return new Intl.NumberFormat("pt-BR").format(n);
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      {/* NAVBAR */}
-      <header className="mx-auto max-w-6xl px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-500/20 ring-1 ring-emerald-400/40">
-            <svg viewBox="0 0 24 24" className="h-5 w-5 text-emerald-400"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.012 10.012 0 0 0 12 2Zm4.7 7.29l-5.06 5.06a1 1 0 0 1-1.41 0l-2.12-2.12a1 1 0 1 1 1.41-1.41l1.41 1.41 4.36-4.36a1 1 0 1 1 1.41 1.41Z"/></svg>
-          </span>
-          <span className="font-semibold tracking-tight">ZapAgenda</span>
-        </div>
-        <nav className="hidden sm:flex gap-6 text-sm text-slate-300">
-          <a href="#features" className="hover:text-white">Recursos</a>
-          <a href="#pricing" className="hover:text-white">Preços</a>
-          <a href="#faq" className="hover:text-white">FAQ</a>
-          <Link href="/login" className="hover:text-white">Entrar</Link>
-        </nav>
-        <div className="flex items-center gap-2 text-sm">
-          <Link
-            href="/login"
-            className="hidden sm:inline-flex rounded-xl px-4 py-2 font-medium ring-1 ring-white/15 hover:bg-white/10"
-          >
-            Entrar
-          </Link>
-          <a
-            href="#pricing"
-            className="rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-slate-950 hover:bg-emerald-400"
-          >
-            Ver planos
-          </a>
+    <div className="min-h-screen bg-white">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm">
+                <svg viewBox="0 0 24 24" className="h-6 w-6 text-white" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <span className="text-lg font-bold text-slate-900">ZapAgenda</span>
+            </div>
+
+            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+              <a href="#recursos" className="hover:text-slate-900 transition-colors">Recursos</a>
+              <a href="#planos" className="hover:text-slate-900 transition-colors">Planos</a>
+              <a href="#faq" className="hover:text-slate-900 transition-colors">FAQ</a>
+              <Link href="/login" className="hover:text-slate-900 transition-colors">Entrar</Link>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Entrar
+              </Link>
+              <a
+                href="#planos"
+                className="inline-flex items-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition-colors"
+              >
+                Ver planos
+              </a>
+            </div>
+          </div>
         </div>
       </header>
 
       {/* HERO */}
-      <section className="mx-auto max-w-6xl px-6 pt-10 pb-16">
-        <div className="grid lg:grid-cols-2 gap-10 items-center">
-          <div>
-            <h1 className="text-3xl sm:text-5xl font-semibold leading-tight">
-              Agendamentos com <span className="text-emerald-400">WhatsApp</span> + Google Agenda.
-            </h1>
-            {/* Destaque da integração: logos maiores e peso igual */}
-            <div className="mt-4 inline-flex items-center gap-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3">
-              <Image
-                src="/logos/calendar.png"
-                alt="Google Agenda"
-                width={40}
-                height={40}
-                className="h-10 w-10"
-                priority
-              />
-              <span className="text-sm font-medium text-emerald-200">Google Agenda + WhatsApp</span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366]">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 48 48"
-                  className="h-6 w-6 text-white"
-                  aria-hidden="true"
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 mb-6">
+                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                Integração completa WhatsApp + Google
+              </div>
+              
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 leading-tight tracking-tight">
+                Agendamentos automáticos
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-sky-600 mt-2">
+                  via WhatsApp
+                </span>
+              </h1>
+
+              <p className="mt-6 text-xl text-slate-600 leading-relaxed max-w-2xl">
+                Compartilhe um link único. O cliente escolhe o horário disponível e confirma direto no WhatsApp. Sincronização automática com Google Agenda.
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <a
+                  href="#planos"
+                  className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-emerald-500 transition-all hover:scale-105"
                 >
-                  <path
-                    fill="currentColor"
-                    d="M24 4C13.526 4 5 12.178 5 22.417c0 4.694 1.889 8.973 4.992 12.143L8 43l8.662-2.832C18.61 41.127 21.243 41 24 41c10.474 0 19-8.178 19-18.583C43 12.178 34.474 4 24 4Zm0 33c-2.44 0-4.81-.59-6.916-1.71l-.495-.264-4.879 1.597 1.548-5.083-.323-.518C11.227 28.187 10 25.4 10 22.417 10 14.74 16.933 9 24 9s14 5.74 14 13.417C38 31.093 31.067 37 24 37Zm7.441-11.351c-.408-.204-2.415-1.189-2.79-1.323-.375-.136-.647-.204-.92.204-.273.409-1.052 1.324-1.288 1.597-.238.273-.476.307-.884.102-.409-.204-1.728-.633-3.293-2.018-1.218-1.085-2.04-2.423-2.277-2.831-.238-.409-.026-.631.179-.835.183-.183.409-.477.612-.715.204-.238.273-.409.409-.681.136-.273.068-.511-.034-.715-.102-.204-.92-2.22-1.26-3.041-.332-.798-.669-.688-.92-.703-.238-.015-.511-.019-.784-.019-.273 0-.716.102-1.09.511-.375.409-1.427 1.393-1.427 3.398 0 2.006 1.461 3.947 1.665 4.221.204.273 2.872 4.392 6.955 6.16.971.419 1.73.668 2.321.856.976.311 1.865.267 2.567.162.782-.117 2.415-.987 2.753-1.939.34-.952.34-1.767.238-1.939-.102-.171-.374-.273-.782-.477Z"
-                  />
-                </svg>
-              </span>
+                  Começar agora
+                  <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </a>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center rounded-full border-2 border-slate-200 px-8 py-4 text-lg font-semibold text-slate-900 hover:bg-slate-50 transition-colors"
+                >
+                  Acessar painel
+                </Link>
+              </div>
+
+              {/* Logos Strip */}
+              <div className="mt-12 flex items-center gap-6 flex-wrap">
+                <span className="text-sm font-medium text-slate-500">Conecta com:</span>
+                <div className="flex items-center gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-2 shadow-sm">
+                  <Image src="/logos/calendar.png" alt="Google Calendar" width={24} height={24} className="rounded" />
+                  <span className="text-sm font-medium text-slate-700">Google Calendar</span>
+                </div>
+                <div className="flex items-center gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-2 shadow-sm">
+                  <Image src="/logos/whatsapp-green-filled.png" alt="WhatsApp" width={24} height={24} className="rounded" />
+                  <span className="text-sm font-medium text-slate-700">WhatsApp</span>
+                </div>
+              </div>
             </div>
-            <p className="mt-4 text-slate-300">
-              Link único para agendar. Sincroniza com o Google Agenda e confirma no WhatsApp. Simples e direto.
+
+            {/* Hero Visual */}
+            <div className="relative lg:pl-8">
+              <div className="absolute -inset-4 bg-gradient-to-r from-emerald-100 to-sky-100 rounded-3xl opacity-20 blur-3xl"></div>
+              <div className="relative rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl">
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-sm font-medium text-slate-500">Agenda Online</span>
+                  <div className="flex items-center gap-2 text-sm text-emerald-600">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                    Disponível
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-2xl bg-slate-50 p-5">
+                    <div className="text-base font-semibold text-slate-900 mb-3">Próximos horários</div>
+                    <ul className="space-y-3 text-base">
+                      <li className="flex items-center justify-between">
+                        <span className="text-slate-700">Ter, 10h00</span>
+                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">Livre</span>
+                      </li>
+                      <li className="flex items-center justify-between">
+                        <span className="text-slate-700">Qua, 14h30</span>
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-500">Ocupado</span>
+                      </li>
+                      <li className="flex items-center justify-between">
+                        <span className="text-slate-700">Qui, 09h00</span>
+                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">Livre</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="rounded-2xl bg-sky-50 p-5">
+                    <div className="text-base font-semibold text-slate-900 mb-2">Cliente</div>
+                    <div className="text-base text-slate-700">Ana Silva • +55 11 9xxxx-xxxx</div>
+                    <button className="mt-4 w-full rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-500 transition-colors">
+                      Confirmar via WhatsApp
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* RECURSOS */}
+      <section id="recursos" className="py-20 bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
+              Tudo que você precisa para automatizar
+            </h2>
+            <p className="text-xl text-slate-600">
+              Recursos pensados para negócios locais que querem profissionalizar sem complicação
             </p>
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
-              <a href="#pricing" className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-emerald-400">Ver planos</a>
-              <a href="#features" className="rounded-xl px-5 py-3 text-sm font-semibold ring-1 ring-white/15 hover:bg-white/10">Como funciona</a>
-              <Link
-                href="/login"
-                className="rounded-xl px-5 py-3 text-sm font-semibold ring-1 ring-emerald-400/40 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20"
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: "🔗",
+                title: "Link de agendamento",
+                description: "Compartilhe um link único no WhatsApp. Cliente escolhe horário e confirma na hora.",
+                color: "emerald"
+              },
+              {
+                icon: "📅",
+                title: "Sincronização Google",
+                description: "Integração bidirecional automática com Google Calendar para evitar conflitos.",
+                color: "sky"
+              },
+              {
+                icon: "💬",
+                title: "Lembretes automáticos",
+                description: "Configure lembretes por WhatsApp antes do compromisso (planos Starter e Pro).",
+                color: "violet"
+              },
+              {
+                icon: "💳",
+                title: "Pagamento antecipado",
+                description: "Opcional: exija pagamento via Pix ou cartão para confirmar a reserva.",
+                color: "amber"
+              },
+              {
+                icon: "📊",
+                title: "Painel completo",
+                description: "Gerencie horários, veja reservas e acompanhe métricas em tempo real.",
+                color: "rose"
+              },
+              {
+                icon: "⭐",
+                title: "Reviews Google",
+                description: "Solicite avaliações no Google automaticamente após o atendimento (plano Pro).",
+                color: "indigo"
+              }
+            ].map((feature, idx) => (
+              <div
+                key={idx}
+                className="group rounded-3xl border border-slate-200 bg-white p-8 hover:shadow-xl transition-all hover:-translate-y-1"
               >
-                Acessar painel
-              </Link>
-            </div>
-            <p className="mt-4 text-xs text-slate-400">
-              3 dias para testar com tranquilidade. Depois, escolha o plano que fizer sentido para você.
+                <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-${feature.color}-50 text-3xl mb-5`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
+                <p className="text-base text-slate-600 leading-relaxed">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PLANOS */}
+      <section id="planos" className="py-20 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
+              Planos simples e transparentes
+            </h2>
+            <p className="text-xl text-slate-600">
+              Escolha o plano ideal para o seu volume de agendamentos
             </p>
           </div>
 
-          <div className="relative">
-            <div className="absolute -inset-6 rounded-3xl bg-emerald-500/10 blur-2xl"/>
-            <div className="relative rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
-              <div className="flex items-center justify-between text-xs text-slate-400">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                <a href="#faq" className="text-emerald-300 hover:text-emerald-200">Dúvidas?</a>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {plans.map((plan, idx) => (
+              <div
+                key={plan.id}
+                className={`relative rounded-3xl border-2 p-8 bg-white transition-all hover:scale-105 ${
+                  plan.id === "starter"
+                    ? "border-emerald-300 shadow-xl shadow-emerald-100"
+                    : "border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                {plan.id === "starter" && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-1 text-sm font-bold text-white shadow-lg">
+                    Mais popular
+                  </div>
+                )}
+
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-slate-900">{plan.label}</h3>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <span className="text-5xl font-extrabold text-slate-900 whitespace-nowrap">
+                      {plan.priceDisplay.split("/")[0]}
+                    </span>
+                    {plan.monthlyPrice > 0 && (
+                      <span className="text-lg text-slate-500">/mês</span>
+                    )}
+                  </div>
                 </div>
-               
-              </div>
 
-              <div className="mt-4 space-y-4">
-                <div className="rounded-2xl border border-white/10 bg-slate-800/60 p-4">
-                  <VerticalFAQCarousel
-                    items={faqPreviewItems}
-                    className="mx-auto"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section id="features" className="mx-auto max-w-6xl px-6 py-12">
-        <h2 className="text-2xl sm:text-3xl font-semibold">Recursos essenciais</h2>
-        <p className="mt-2 text-slate-300">Foco no que dá resultado rápido para negócios locais.</p>
-
-        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-          { t: "Integra Google + WhatsApp", d: "Conecte o Google Agenda (OAuth) e envie confirmações e lembretes pelo WhatsApp." },
-          { t: "Fluxo prático para o cliente", d: "Um link simples para escolher dia e horário. Sem atrito." },
-          { t: "Planos sob medida", d: "Free: 1 agenda. Starter: até 3 agendas. Pro: até 20 agendas." },
-          { t: "Lembretes configuráveis", d: "Nos planos Starter e Pro, escolha se e quando enviar lembretes." },
-            { t: "Painel direto ao ponto", d: "Gerencie horários e acompanhe agendamentos em poucos cliques." },
-            { t: "Plano Free", d: "Comece grátis no plano Free e faça upgrade quando quiser." },
-          ].map((f) => (
-            <div key={f.t} className="rounded-2xl border border-white/10 bg-slate-900/60 p-5">
-              <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 ring-1 ring-emerald-400/30">
-                <svg viewBox="0 0 24 24" className="h-5 w-5 text-emerald-400"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.012 10.012 0 0 0 12 2Zm4.7 7.29l-5.06 5.06a1 1 0 0 1-1.41 0l-2.12-2.12a1 1 0 1 1 1.41-1.41l1.41 1.41 4.36-4.36a1 1 0 1 1 1.41 1.41Z"/></svg>
-              </div>
-              <h3 className="font-medium">{f.t}</h3>
-              <p className="mt-1 text-sm text-slate-300">{f.d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section id="pricing" className="mx-auto max-w-6xl px-6 py-12">
-        <h2 className="text-2xl sm:text-3xl font-semibold">Planos simples</h2>
-
-        <div className="mt-8 overflow-x-auto rounded-3xl border border-white/10 bg-slate-900/60">
-          <table className="min-w-full text-sm">
-            <thead className="bg-white/5 text-xs uppercase tracking-wide text-slate-300">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold text-slate-200">&nbsp;</th>
-                {planData.map((plan) => (
-                  <th
-                    key={plan.id}
-                    className={`px-4 py-3 text-left font-semibold ${plan.id === "starter" ? "text-emerald-300" : "text-slate-200"}`}
-                  >
-                    {plan.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {comparisonRows.map((row) => (
-                <tr key={row.label} className="even:bg-white/5 hover:bg-white/10 transition-colors">
-                  <th className="px-4 py-3 text-left text-slate-300 font-medium">{row.label}</th>
-                  {planData.map((plan) => (
-                    <td key={`${plan.id}-${row.label}`} className="px-4 py-3 text-slate-200">
-                      {row.getValue(plan)}
-                    </td>
+                <ul className="space-y-4 mb-8">
+                  {plan.bullets.map((bullet, i) => (
+                    <li key={i} className="flex items-start gap-3 text-base text-slate-700">
+                      <svg className="h-6 w-6 flex-shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{bullet}</span>
+                    </li>
                   ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+                </ul>
 
-      {/* SOCIAL PROOF */}
-      <section className="mx-auto max-w-6xl px-6 py-12">
-        <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6">
-          <p className="text-sm text-slate-300">
-            “Eu perdia clientes porque esquecia de responder na hora. Com o link do ZapAgenda, o cliente já marca o horário e eu só confirmo. Simples e direto.”
-          </p>
-          <div className="mt-3 text-xs text-slate-400">— Beta tester, Pelotas/RS</div>
+                <div className="space-y-3 border-t border-slate-100 pt-6 mb-8">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Agendas conectadas</span>
+                    <span className="font-semibold text-slate-900">{plan.limits.maxConnectedCalendars}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Reservas/mês</span>
+                    <span className="font-semibold text-slate-900">{formatNumber(plan.limits.maxAppointmentsPerMonth)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Mensagens incluídas</span>
+                    <span className="font-semibold text-slate-900">{formatNumber(plan.limits.whatsappMessagesIncludedPerMonth)}</span>
+                  </div>
+                </div>
+
+                {plan.features.paymentAtBooking && (
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                      Pagamento na reserva
+                    </span>
+                    {plan.features.reviewsGoogle && (
+                      <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
+                        Reviews Google
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <a
+                  href="#"
+                  className={`block w-full rounded-xl px-6 py-3 text-center text-base font-semibold transition-colors ${
+                    plan.id === "starter"
+                      ? "bg-emerald-600 text-white hover:bg-emerald-500"
+                      : "bg-slate-900 text-white hover:bg-slate-800"
+                  }`}
+                >
+                  Escolher {plan.label}
+                </a>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="mx-auto max-w-6xl px-6 py-12">
-        <h2 className="text-2xl sm:text-3xl font-semibold">Perguntas frequentes</h2>
-        <div className="mt-6 grid gap-4">
-          {FAQ_ITEMS.map((faq) => (
-            <div key={faq.q} className="rounded-2xl border border-white/10 bg-slate-900/60 p-5">
-              <div className="font-medium">{faq.q}</div>
-              <p className="mt-1 text-sm text-slate-300">{faq.a}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <section id="faq" className="py-20 bg-white">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
+              Perguntas frequentes
+            </h2>
+          </div>
 
-      {/* CTA */}
-      <section id="cta" className="mx-auto max-w-6xl px-6 pb-16">
-        <div className="rounded-3xl border border-emerald-400/30 bg-emerald-500/10 p-8 text-center">
-          <h3 className="text-xl font-semibold">Pronto para automatizar sua agenda?</h3>
-          <p className="mt-2 text-slate-200">
-            Com poucos cliques você configura profissionais, sincroniza com o Google Agenda e envia o link para seus
-            clientes reservarem horários.
-          </p>
-          <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100"
-            >
-              Entrar ou criar conta
-            </Link>
-            <a
-              href="#pricing"
-              className="inline-flex items-center justify-center rounded-xl bg-emerald-500/20 px-5 py-3 text-sm font-semibold text-emerald-200 ring-1 ring-emerald-400/40 hover:bg-emerald-500/30"
-            >
-              Ver planos
-            </a>
+          <div className="space-y-4">
+            {[
+              {
+                q: "Precisa instalar algum app?",
+                a: "Não. Você compartilha um link e o cliente agenda direto no navegador. A confirmação chega no WhatsApp dele."
+              },
+              {
+                q: "Como funciona a integração com Google Agenda?",
+                a: "Você autoriza uma vez com sua conta Google. Todos os agendamentos sincronizam automaticamente e evitamos conflitos de horário."
+              },
+              {
+                q: "Posso cancelar a qualquer momento?",
+                a: "Sim, são planos mensais sem fidelidade. Você pode cancelar pelo painel com poucos cliques."
+              },
+              {
+                q: "Os lembretes são automáticos?",
+                a: "Nos planos Starter e Pro você configura lembretes automáticos por WhatsApp com antecedência personalizável."
+              },
+              {
+                q: "Como funciona o pagamento antecipado?",
+                a: "Você ativa a opção no painel, configura o valor e escolhe Pix ou cartão. O horário só é confirmado após o pagamento."
+              }
+            ].map((faq, idx) => (
+              <div key={idx} className="rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-lg transition-shadow">
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{faq.q}</h3>
+                <p className="text-base text-slate-600 leading-relaxed">{faq.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <footer className="mx-auto max-w-6xl px-6 pb-10 text-center text-xs text-slate-400">
-        © {new Date().getFullYear()} ZapAgenda — Plataforma de agendamentos automatizados.
+      {/* CTA FINAL */}
+      <section className="py-20 bg-gradient-to-br from-emerald-50 via-sky-50 to-violet-50">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">
+            Pronto para automatizar sua agenda?
+          </h2>
+          <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
+            Comece grátis no plano Free e faça upgrade quando precisar de mais agendas ou recursos avançados.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="#planos"
+              className="inline-flex items-center justify-center rounded-full bg-slate-900 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-slate-800 transition-all hover:scale-105"
+            >
+              Ver planos
+            </a>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center rounded-full border-2 border-slate-300 px-8 py-4 text-lg font-semibold text-slate-900 hover:bg-white transition-colors"
+            >
+              Entrar agora
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-slate-200 bg-white py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600">
+                <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <span className="font-bold text-slate-900">ZapAgenda</span>
+            </div>
+            
+            <div className="flex items-center gap-6 text-sm text-slate-600">
+              <Link href="/termos" className="hover:text-slate-900">Termos</Link>
+              <Link href="/privacidade" className="hover:text-slate-900">Privacidade</Link>
+              <Link href="/regras" className="hover:text-slate-900">Regras</Link>
+            </div>
+
+            <p className="text-sm text-slate-500">
+              © {new Date().getFullYear()} ZapAgenda — Agendamentos automatizados
+            </p>
+          </div>
+        </div>
       </footer>
     </div>
   );
