@@ -98,17 +98,17 @@ export default function AppointmentList() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label className="block text-sm text-slate-300 mb-1" htmlFor="slug-filter">
+          <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="slug-filter">
             Agenda
           </label>
           <select
             id="slug-filter"
             value={slugFilter}
             onChange={(e) => setSlugFilter(e.target.value)}
-            className="w-full rounded-xl bg-white/5 px-4 py-2 text-sm outline-none ring-1 ring-white/10"
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">Todos</option>
             {slugOptions.map((slug) => (
@@ -120,7 +120,7 @@ export default function AppointmentList() {
         </div>
 
         <div>
-          <label className="block text-sm text-slate-300 mb-1" htmlFor="since-filter">
+          <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="since-filter">
             Desde
           </label>
           <input
@@ -128,12 +128,12 @@ export default function AppointmentList() {
             type="date"
             value={since}
             onChange={(e) => setSince(e.target.value)}
-            className="w-full rounded-xl bg-white/5 px-4 py-2 text-sm outline-none ring-1 ring-white/10"
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-slate-300 mb-1" htmlFor="until-filter">
+          <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="until-filter">
             Até
           </label>
           <input
@@ -141,12 +141,12 @@ export default function AppointmentList() {
             type="date"
             value={until}
             onChange={(e) => setUntil(e.target.value)}
-            className="w-full rounded-xl bg-white/5 px-4 py-2 text-sm outline-none ring-1 ring-white/10"
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div className="sm:col-span-2">
-          <label className="block text-sm text-slate-300 mb-1" htmlFor="search-filter">
+          <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="search-filter">
             Buscar cliente / telefone
           </label>
           <input
@@ -154,7 +154,7 @@ export default function AppointmentList() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="ex.: Maria"
-            className="w-full rounded-xl bg-white/5 px-4 py-2 text-sm outline-none ring-1 ring-white/10"
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
@@ -163,25 +163,25 @@ export default function AppointmentList() {
             type="button"
             onClick={() => void load()}
             disabled={loading}
-            className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
+            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-60 transition-colors"
           >
             {loading ? "Carregando..." : "Atualizar"}
           </button>
           <button
             type="button"
             onClick={resetFilters}
-            className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/15 hover:bg-white/15"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
           >
             Limpar
           </button>
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-300">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
         <table className="w-full min-w-[720px] text-sm text-left">
-          <thead className="bg-white/5 text-xs uppercase tracking-wide text-slate-300">
+          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600 border-b border-slate-200">
             <tr>
               <th className="px-4 py-3">Horário</th>
               <th className="px-4 py-3">Agenda</th>
@@ -195,28 +195,28 @@ export default function AppointmentList() {
           <tbody>
             {filtered.length === 0 && !loading ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
                   Nenhum agendamento encontrado.
                 </td>
               </tr>
             ) : (
               filtered.map((apt) => (
-                <tr key={apt.id} className="border-b border-white/5">
-                  <td className="px-4 py-3 text-slate-200">{formatDate(apt.startISO)}</td>
-                  <td className="px-4 py-3 text-slate-300">{apt.slug}</td>
-                <td className="px-4 py-3 text-slate-200">{apt.customerName}</td>
-                  <td className="px-4 py-3 text-slate-300">{apt.customerPhone}</td>
-                  <td className="px-4 py-3 text-slate-300">
+                <tr key={apt.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3 text-slate-900 font-medium">{formatDate(apt.startISO)}</td>
+                  <td className="px-4 py-3 text-slate-600">{apt.slug}</td>
+                <td className="px-4 py-3 text-slate-900">{apt.customerName}</td>
+                  <td className="px-4 py-3 text-slate-600">{apt.customerPhone}</td>
+                  <td className="px-4 py-3 text-slate-600">
                     {apt.paymentStatus ? (
-                      <span className="rounded-full bg-white/10 px-2 py-1 text-xs text-slate-200">
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
                         {apt.paymentStatus}
                       </span>
                     ) : (
                       "—"
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-300">{formatDate(apt.createdAt)}</td>
-                  <td className="px-4 py-3 text-slate-300">
+                  <td className="px-4 py-3 text-slate-600">{formatDate(apt.createdAt)}</td>
+                  <td className="px-4 py-3 text-slate-600">
                     {apt.reminderSentAt ? `Enviado ${formatDate(apt.reminderSentAt)}` : "Pendente"}
                   </td>
                 </tr>

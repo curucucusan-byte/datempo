@@ -24,25 +24,30 @@ export default async function AgendaPage({ params }: { params: { slug: string } 
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="mx-auto max-w-xl px-6 py-8 text-center">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10">
-          <Image
-            src={(linkedCalendar.logoPath || "/logos/calendar.png") as string}
-            alt={linkedCalendar.summary}
-            width={56}
-            height={56}
-            className="h-14 w-14 object-cover"
-            priority
-          />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Modern Header */}
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-16 text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border-2 border-slate-200 bg-white shadow-sm">
+            <Image
+              src={(linkedCalendar.logoPath || "/logos/calendar.png") as string}
+              alt={linkedCalendar.summary}
+              width={80}
+              height={80}
+              className="h-20 w-20 object-cover"
+              priority
+            />
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-bold text-slate-900">
+            Agende com {linkedCalendar.summary}
+          </h1>
+          {linkedCalendar.description && (
+            <p className="mt-4 text-lg text-slate-600">{linkedCalendar.description}</p>
+          )}
         </div>
-        <h1 className="text-3xl font-semibold">Agende com {linkedCalendar.summary}</h1>
-        {linkedCalendar.description && (
-          <p className="mt-2 text-slate-300">{linkedCalendar.description}</p>
-        )}
       </header>
 
-      <main className="mx-auto max-w-xl px-6 pb-16">
+      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
         <AppointmentForm slug={params.slug} />
       </main>
     </div>

@@ -52,39 +52,56 @@ export default async function PlansPage({
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8">
-        <div>
-          <h1 className="text-3xl font-semibold">Escolha o plano ideal</h1>
-          <p className="mt-2 text-slate-300">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Modern Header */}
+      <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm">
+                <svg viewBox="0 0 24 24" className="h-6 w-6 text-white" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <span className="text-lg font-bold text-slate-900">ZapAgenda</span>
+            </Link>
+            <Link
+              href="/dashboard"
+              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              Voltar ao dashboard
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Page Header */}
+      <div className="bg-white border-b border-slate-100">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold text-slate-900">Escolha o plano ideal</h1>
+          <p className="mt-4 text-lg text-slate-600">
             Conta atual: {" "}
-            <span className="font-medium text-emerald-300">
+            <span className="font-semibold text-emerald-600">
               {planDetails?.label ?? "Inativo"}
-            </span>{" "}
-            — status {account.status}.
+            </span>
             {account.trialEndsAt && account.status === "trial" && (
-              <> Teste expira em {new Date(account.trialEndsAt).toLocaleDateString("pt-BR")}.</>
+              <> • Teste expira em {new Date(account.trialEndsAt).toLocaleDateString("pt-BR")}
+              </>
             )}
           </p>
         </div>
-        <Link
-          href="/dashboard"
-          className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/15 hover:bg-white/15"
-        >
-          Voltar ao dashboard
-        </Link>
-      </header>
+      </div>
       {showDowngraded && (
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-6 rounded-2xl border border-amber-400/40 bg-amber-900/20 p-4 text-sm text-amber-100">
-            Você não possui mais o plano pago. Sua conta segue ativa no plano Free. Faça upgrade novamente para
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-base text-amber-900">
+            ⚠️ Você não possui mais o plano pago. Sua conta segue ativa no plano Free. Faça upgrade para
             recuperar os recursos adicionais.
           </div>
         </div>
       )}
 
-      <main className="mx-auto max-w-6xl px-6 pb-16 space-y-12">
-        <div className="grid gap-6 md:grid-cols-3">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 space-y-12">
+        <div className="grid gap-8 md:grid-cols-3">
           {["free", "starter", "pro"].map((planKey) => {
             const plan = ACTIVE_PLANS[planKey as keyof typeof ACTIVE_PLANS];
             const isCurrent = account.plan === plan.id;
@@ -102,42 +119,49 @@ export default async function PlansPage({
             return (
             <div
               key={plan.id}
-              className={`flex h-full flex-col rounded-3xl border p-6 ${
+              className={`relative flex h-full flex-col rounded-3xl border-2 p-8 bg-white transition-all hover:scale-105 ${
                 highlight
-                  ? "border-emerald-400/60 bg-emerald-500/10"
-                  : "border-white/10 bg-slate-900/60"
+                  ? "border-emerald-300 shadow-xl shadow-emerald-100"
+                  : "border-slate-200 hover:border-slate-300"
               }`}
             >
+              {highlight && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-1 text-sm font-bold text-white shadow-lg">
+                  Mais popular
+                </div>
+              )}
               <div className="flex items-baseline justify-between">
-                <h2 className="text-xl font-semibold">{plan.label}</h2>
-                {highlight && <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-xs text-emerald-300">Recomendado</span>}
+                <h2 className="text-2xl font-bold text-slate-900">{plan.label}</h2>
               </div>
-              <div className="mt-1 text-2xl font-bold">{plan.priceDisplay}</div>
-              <p className="mt-1 text-sm text-slate-300">
+              <div className="mt-4 flex items-baseline gap-2">
+                <span className="text-5xl font-extrabold text-slate-900 whitespace-nowrap">{plan.priceDisplay.split("/")[0]}</span>
+                {plan.monthlyPrice > 0 && <span className="text-lg text-slate-500">/mês</span>}
+              </div>
+              <p className="mt-2 text-base text-slate-600">
                 {plan.monthlyPrice === 0
                   ? "Sem mensalidade."
                   : plan.trialDays > 0
                   ? `${plan.trialDays} dia(s) de teste.`
                   : "Cancele quando quiser."}
               </p>
-              <ul className="mt-4 space-y-2 text-sm text-slate-200">
+              <ul className="mt-6 space-y-3 text-base text-slate-700">
                 {highlights.map((item) => (
-                  <li key={item} className="flex items-center gap-2">
-                    <svg viewBox="0 0 24 24" className="h-4 w-4 text-emerald-400" aria-hidden>
-                      <path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" />
+                  <li key={item} className="flex items-start gap-3">
+                    <svg viewBox="0 0 24 24" className="h-6 w-6 flex-shrink-0 text-emerald-600" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
-              <div className="mt-auto pt-4 border-t border-white/10">
+              <div className="mt-auto pt-6 border-t border-slate-100">
                 {isCurrent ? (
-                  <div className="text-center py-3 text-emerald-300 font-medium">
+                  <div className="text-center py-3 text-emerald-600 font-semibold text-base">
                     ✓ Plano Atual
                   </div>
                 ) : !isPaidPlan ? (
-                  <div className="text-center py-3 text-slate-300">
-                    Incluído por padrão — basta continuar usando.
+                  <div className="text-center py-3 text-slate-500 text-base">
+                    Incluído por padrão
                   </div>
                 ) : (
                   <PaymentButtons plan={plan.id as Exclude<ActivePlanId, "free">} price={plan.monthlyPrice} />

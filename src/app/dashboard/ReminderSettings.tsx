@@ -61,12 +61,12 @@ export default function ReminderSettings({
   return (
     <form
       onSubmit={handleSave}
-      className="rounded-3xl border border-white/10 bg-slate-900/60 p-6"
+      className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6"
     >
       <header className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Lembretes no WhatsApp</h2>
-          <p className="text-sm text-slate-300">
+          <h2 className="text-lg font-bold text-slate-900">Lembretes no WhatsApp</h2>
+          <p className="text-sm text-slate-600">
             Ajuste quando os clientes recebem lembretes automáticos.
             {maxAutoReminders > 0 ? (
               <span> Seu plano atual permite até {maxAutoReminders} lembrete(s) automático(s) por agendamento.</span>
@@ -76,26 +76,26 @@ export default function ReminderSettings({
           </p>
         </div>
         {!canEdit && (
-          <span className="text-xs text-amber-300">
-            Faça upgrade para habilitar {requiredPlanLabel} e liberar lembretes automáticos.
+          <span className="text-xs font-medium text-amber-700 bg-amber-50 px-3 py-1 rounded-full">
+            Faça upgrade para habilitar {requiredPlanLabel}
           </span>
         )}
       </header>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
-        <label className="flex items-center gap-3 text-sm text-slate-200">
+        <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
           <input
             type="checkbox"
             checked={enabled}
             onChange={(event) => setEnabled(event.target.checked)}
             disabled={!canEdit}
-            className="h-4 w-4 rounded border border-slate-400"
+            className="h-4 w-4 rounded border border-slate-300 text-emerald-600 focus:ring-emerald-500"
           />
           Ativar lembretes automáticos
         </label>
 
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-sm text-slate-300" htmlFor="reminder-window">
+          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="reminder-window">
             Enviar com antecedência (minutos)
           </label>
           <input
@@ -106,12 +106,12 @@ export default function ReminderSettings({
             value={windowMinutes}
             onChange={(event) => setWindowMinutes(event.target.value)}
             disabled={!canEdit}
-            className="w-full rounded-xl bg-white/5 px-4 py-2 text-sm outline-none ring-1 ring-white/10"
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
           />
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-500">
             Recomendado: entre 30 e 180 minutos. O sistema usa horário local do cliente.
           </p>
-          {windowInvalid && <p className="text-xs text-red-300 mt-1">Informe um valor válido (mínimo 5).</p>}
+          {windowInvalid && <p className="text-xs text-red-600 mt-1">Informe um valor válido (mínimo 5).</p>}
         </div>
       </div>
 
@@ -119,22 +119,22 @@ export default function ReminderSettings({
         <button
           type="submit"
           disabled={!canEdit || loading || windowInvalid}
-          className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
+          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-60 transition-colors"
         >
           {loading ? "Salvando..." : "Salvar preferências"}
         </button>
         {status.type !== "idle" && (
-          <span className={`text-sm ${status.type === "success" ? "text-emerald-300" : "text-red-300"}`}>
+          <span className={`text-sm font-medium ${status.type === "success" ? "text-emerald-600" : "text-red-600"}`}>
             {status.message}
           </span>
         )}
       </div>
 
-      <footer className="mt-4 rounded-2xl bg-white/5 p-3 text-xs text-slate-300">
+      <footer className="mt-4 rounded-2xl bg-slate-50 p-3 text-xs text-slate-600 border border-slate-100">
         <p>
           Os lembretes são enviados somente quando houver resposta recente do cliente (22h) e dentro da franquia do plano.
         </p>
-        <p className="mt-1 text-slate-400">
+        <p className="mt-1 text-slate-500">
           Plano atual: {planLabel} ({planId}).
         </p>
       </footer>
