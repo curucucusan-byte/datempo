@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/api/health/google/route.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/app/api/health/google/route.ts
 
 import { NextResponse } from "next/server";
 import { google } from "googleapis";

@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/lib/stripe.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/lib/stripe.ts
 
 import Stripe from "stripe";
 

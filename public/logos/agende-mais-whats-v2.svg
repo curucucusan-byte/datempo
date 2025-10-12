@@ -1,0 +1,95 @@
+<!-- Logo Agende Mais - Balão Calendário com Plus -->
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradiente Verde WhatsApp -->
+    <linearGradient id="whatsGreen2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#25D366;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#128C7E;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Gradiente cores Google -->
+    <linearGradient id="googleColors" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4285F4;stop-opacity:1" />
+      <stop offset="33%" style="stop-color:#EA4335;stop-opacity:1" />
+      <stop offset="66%" style="stop-color:#FBBC04;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34A853;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Sombra -->
+    <filter id="shadow2" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Balão circular em formato de calendário -->
+  <g filter="url(#shadow2)">
+    <!-- Círculo principal verde WhatsApp -->
+    <circle cx="100" cy="95" r="75" fill="url(#whatsGreen2)"/>
+    
+    <!-- Ponta do balão -->
+    <path d="M 45 155 Q 40 160 35 165 Q 42 158 50 152 Z" fill="url(#whatsGreen2)"/>
+    
+    <!-- Barra superior colorida do calendário (ao redor do círculo) -->
+    <circle cx="100" cy="95" r="75" fill="none" stroke="url(#googleColors)" stroke-width="8"/>
+    
+    <!-- Barra interna branca (header do calendário) -->
+    <path d="M 40 65 Q 40 50 55 50 L 145 50 Q 160 50 160 65 L 160 70 L 40 70 Z" fill="white"/>
+    
+    <!-- Argolas do calendário (em cima da barra) -->
+    <g>
+      <circle cx="70" cy="48" r="4" fill="white" stroke="#25D366" stroke-width="2.5"/>
+      <circle cx="100" cy="48" r="4" fill="white" stroke="#25D366" stroke-width="2.5"/>
+      <circle cx="130" cy="48" r="4" fill="white" stroke="#25D366" stroke-width="2.5"/>
+    </g>
+  </g>
+  
+  <!-- Grid de calendário (minimalista, dentro do círculo) -->
+  <g transform="translate(100, 95)">
+    <rect x="-45" y="-10" width="90" height="65" rx="6" fill="white" opacity="0.95"/>
+    
+    <!-- Mini dias (decorativos) -->
+    <g fill="#128C7E" opacity="0.3">
+      <!-- Linha 1 -->
+      <circle cx="-30" cy="0" r="3"/>
+      <circle cx="-15" cy="0" r="3"/>
+      <circle cx="0" cy="0" r="3"/>
+      <circle cx="15" cy="0" r="3"/>
+      <circle cx="30" cy="0" r="3"/>
+      
+      <!-- Linha 2 -->
+      <circle cx="-30" cy="15" r="3"/>
+      <circle cx="-15" cy="15" r="3"/>
+      <circle cx="15" cy="15" r="3"/>
+      <circle cx="30" cy="15" r="3"/>
+      
+      <!-- Linha 3 -->
+      <circle cx="-30" cy="30" r="3"/>
+      <circle cx="-15" cy="30" r="3"/>
+      <circle cx="0" cy="30" r="3"/>
+      <circle cx="15" cy="30" r="3"/>
+      <circle cx="30" cy="30" r="3"/>
+    </g>
+  </g>
+  
+  <!-- PLUS centralizado (destaque principal) -->
+  <g transform="translate(100, 95)">
+    <!-- Círculo de fundo (cores Google) -->
+    <circle cx="0" cy="15" r="20" fill="white"/>
+    <circle cx="0" cy="15" r="18" fill="url(#googleColors)"/>
+    
+    <!-- Símbolo + em branco -->
+    <line x1="0" y1="5" x2="0" y2="25" stroke="white" stroke-width="4" stroke-linecap="round"/>
+    <line x1="-10" y1="15" x2="10" y2="15" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Brilho sutil no topo -->
+  <ellipse cx="100" cy="50" rx="50" ry="25" fill="white" opacity="0.15"/>
+</svg>

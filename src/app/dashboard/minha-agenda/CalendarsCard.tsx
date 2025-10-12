@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/dashboard/minha-agenda/CalendarsCard.tsx
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/app/dashboard/minha-agenda/CalendarsCard.tsx
 
 "use client";
 
@@ -444,7 +444,7 @@ export default function CalendarsCard() {
         <div>
           <h2 className="text-lg font-semibold">Calendários Google</h2>
           <p className="text-sm text-slate-300">
-            Vincule sua agenda do Google e selecione qual usar no ZapAgenda. {linkedCount}/{planLimit} vinculadas.
+            Vincule sua agenda do Google e selecione qual usar no DaTempo. {linkedCount}/{planLimit} vinculadas.
           </p>
         </div>
         {!connected ? (

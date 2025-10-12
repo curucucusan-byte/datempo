@@ -1,0 +1,84 @@
+<!-- Logo Agende Mais - Fusão Alternativa (Calendário dentro do balão) -->
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fusionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#25D366;stop-opacity:1" />
+      <stop offset="33%" style="stop-color:#34A853;stop-opacity:1" />
+      <stop offset="66%" style="stop-color:#4285F4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FBBC04;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Balão de mensagem grande estilo WhatsApp -->
+  <path d="M 50 50 
+           L 150 50 
+           Q 170 50 170 70 
+           L 170 130 
+           Q 170 150 150 150 
+           L 80 150 
+           L 60 170 
+           L 70 150 
+           Q 50 150 50 130 
+           L 50 70 
+           Q 50 50 50 50 Z" 
+        fill="url(#fusionGradient)" 
+        stroke="white" 
+        stroke-width="3"/>
+  
+  <!-- Calendário dentro do balão -->
+  <g transform="translate(20, 10)">
+    <!-- Base do calendário -->
+    <rect x="60" y="60" width="80" height="75" rx="8" fill="white" opacity="0.95"/>
+    
+    <!-- Barra superior colorida (Google Calendar style) -->
+    <rect x="60" y="60" width="80" height="12" rx="8" fill="white"/>
+    <rect x="65" y="63" width="70" height="6" rx="3" fill="#4285F4"/>
+    
+    <!-- Argolas do calendário -->
+    <circle cx="75" cy="58" r="3" fill="white" stroke="#25D366" stroke-width="2"/>
+    <circle cx="95" cy="58" r="3" fill="white" stroke="#25D366" stroke-width="2"/>
+    <circle cx="115" cy="58" r="3" fill="white" stroke="#25D366" stroke-width="2"/>
+    
+    <!-- Grid de dias (minimalista) -->
+    <g fill="#128C7E">
+      <!-- Semana 1 -->
+      <rect x="68" y="82" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="80" y="82" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="92" y="82" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="104" y="82" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="116" y="82" width="8" height="8" rx="2" opacity="0.4"/>
+      
+      <!-- Semana 2 -->
+      <rect x="68" y="95" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="80" y="95" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="92" y="95" width="8" height="8" rx="2" fill="#25D366"/> <!-- Dia selecionado -->
+      <rect x="104" y="95" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="116" y="95" width="8" height="8" rx="2" opacity="0.4"/>
+      
+      <!-- Semana 3 -->
+      <rect x="68" y="108" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="80" y="108" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="92" y="108" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="104" y="108" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="116" y="108" width="8" height="8" rx="2" opacity="0.4"/>
+      
+      <!-- Semana 4 -->
+      <rect x="68" y="121" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="80" y="121" width="8" height="8" rx="2" opacity="0.4"/>
+      <rect x="92" y="121" width="8" height="8" rx="2" opacity="0.4"/>
+    </g>
+    
+    <!-- Check mark no dia selecionado -->
+    <path d="M 109 97 L 113 101 L 119 95" 
+          stroke="white" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+  </g>
+  
+  <!-- Ícone de notificação/sino (canto superior direito) -->
+  <circle cx="155" cy="55" r="12" fill="#FBBC04"/>
+  <path d="M 152 52 Q 155 48 158 52 L 158 57 Q 158 60 155 60 Q 152 60 152 57 Z" fill="white"/>
+  <rect x="153" y="60" width="4" height="2" rx="1" fill="white"/>
+</svg>

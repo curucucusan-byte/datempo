@@ -32,7 +32,7 @@ export default async function PixPaymentPage({ params }: { params: { id: string 
         <h1 className="text-2xl font-semibold">Pagamento Pix</h1>
         <p className="text-sm text-slate-300">
           Envie o Pix no valor de <span className="text-emerald-300">{amountFormatted}</span> para concluir a assinatura.
-          O acesso ao ZapAgenda é liberado assim que o pagamento for confirmado automaticamente.
+          O acesso ao DaTempo é liberado assim que o pagamento for confirmado automaticamente.
         </p>
       </header>
 

@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/api/payments/create-pix/route.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/app/api/payments/create-pix/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/session";

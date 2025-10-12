@@ -38,11 +38,11 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//ZapAgenda//pt-BR",
+    "PRODID:-//DaTempo//pt-BR",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:${icsEscape(appt.id)}@zapagenda`,
+    `UID:${icsEscape(appt.id)}@datempo`,
     `DTSTAMP:${toICSDate(new Date())}`,
     `DTSTART:${toICSDate(dtStart)}`,
     `DTEND:${toICSDate(dtEnd)}`,
@@ -59,7 +59,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     status: 200,
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename=zapagenda-${appt.id}.ics`,
+      "Content-Disposition": `attachment; filename=datempo-${appt.id}.ics`,
     },
   });
 }

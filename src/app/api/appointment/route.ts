@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/api/appointment/route.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/app/api/appointment/route.ts
 
 import { NextResponse } from "next/server";
 
@@ -284,7 +284,7 @@ export async function POST(req: Request) {
       : null;
 
     const confirmMsgLines = [
-      `✅ *Agende Mais* — Agendamento registrado!`,
+      `✅ *DaTempo* — Agendamento registrado!`,
       `Agenda: *${linkedCalendar.description || linkedCalendar.summary}*`,
       `Cliente: *${body.customerName}*`,
       `Data/Hora: *${humanDate}*`,
@@ -374,7 +374,7 @@ export async function POST(req: Request) {
     if (ownerPhone) {
       const toDigits = ownerPhone.replace(/\D/g, "");
       const consentLine = "Aceito receber lembretes sobre este agendamento.";
-      const agendaLabel = linkedCalendar.description || linkedCalendar.summary || linkedCalendar.slug || "Agende Mais";
+      const agendaLabel = linkedCalendar.description || linkedCalendar.summary || linkedCalendar.slug || "DaTempo";
       waText =
         `Olá! Sou ${body.customerName}. Acabei de agendar com ${agendaLabel}. ` +
         `Data/Hora: ${humanDate}. ${consentLine}`;

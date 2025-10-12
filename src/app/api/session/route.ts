@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/api/session/route.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/app/api/session/route.ts
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";

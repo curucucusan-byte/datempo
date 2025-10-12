@@ -138,7 +138,7 @@ export async function POST(req: Request) {
       const calendar = appt.calendar;
 
       const message =
-        `⏰ *Lembrete Agende Mais*\n` +
+        `⏰ *Lembrete DaTempo*\n` +
         `Você tem ${appt.service} com ${calendar?.description || calendar?.summary || appt.slug} em ${formatRelative(minutesUntil)}.\n` +
         `Data/Hora: *${humanDate}*\n\n` +
         `Se precisar reagendar, responda esta mensagem.`;

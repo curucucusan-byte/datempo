@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: { slug: string; h: 
     return { title: "Agenda não encontrada" };
   }
   return {
-    title: `Agende com ${linkedCalendar.summary} — ZapAgenda`,
+    title: `Agende com ${linkedCalendar.summary} — DaTempo`,
     description: linkedCalendar.description,
   };
 }

@@ -7,7 +7,7 @@ import { ACTIVE_PLANS, getPlanDetails } from "@/lib/plans";
 import PaymentButtons from "./PaymentButtons";
 
 export const metadata = {
-  title: "Planos — ZapAgenda",
+  title: "Planos — Agende Mais",
 };
 
 export default async function PlansPage() {

@@ -11,7 +11,7 @@ import LogoutButton from "./LogoutButton";
 import ReminderSettings from "./ReminderSettings";
 
 export const metadata = {
-  title: "Dashboard — ZapAgenda",
+  title: "Dashboard — Agende Mais",
 };
 
 export default async function DashboardPage() {

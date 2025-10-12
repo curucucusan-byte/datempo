@@ -1,0 +1,20 @@
+<!-- Logo Agende Mais - Versão 5: Super Moderno com AM -->
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Forma geométrica moderna -->
+  <path d="M 100 20 L 180 60 L 180 140 L 100 180 L 20 140 L 20 60 Z" fill="url(#gradient5)"/>
+  
+  <!-- Letra A -->
+  <path d="M 65 130 L 85 70 L 105 130" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <line x1="73" y1="110" x2="97" y2="110" stroke="white" stroke-width="10" stroke-linecap="round"/>
+  
+  <!-- Letra M -->
+  <path d="M 105 130 L 105 70 L 120 90 L 135 70 L 135 130" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

@@ -12,7 +12,7 @@ import CalendarsCard from "./CalendarsCard";
 // import CalendarProfiles from "./CalendarProfiles"; // Removido
 
 export const metadata = {
-  title: "Minha Agenda — ZapAgenda",
+  title: "Minha Agenda — Agende Mais",
 };
 
 export default async function MinhaAgendaPage() {

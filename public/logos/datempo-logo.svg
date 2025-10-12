@@ -1,0 +1,58 @@
+<!-- Logo DaTempo - Tipográfico com detalhe vintage -->
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradiente madeira -->
+    <linearGradient id="madeiraGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B6F47;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B8956A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Ornamento decorativo esquerdo (opcional) -->
+  <path d="M 5 30 Q 10 25 15 30 Q 10 35 5 30" 
+        fill="none" 
+        stroke="#D4C4A8" 
+        stroke-width="1.5" 
+        opacity="0.6"/>
+  
+  <!-- Texto "DaTempo" -->
+  <text x="25" 
+        y="38" 
+        font-family="Georgia, 'Crimson Pro', serif" 
+        font-size="32" 
+        font-weight="700" 
+        fill="url(#madeiraGrad)"
+        letter-spacing="1">
+    DaTempo
+  </text>
+  
+  <!-- Linha decorativa embaixo -->
+  <line x1="25" 
+        y1="45" 
+        x2="165" 
+        y2="45" 
+        stroke="#EDE5D8" 
+        stroke-width="2" 
+        stroke-linecap="round"/>
+  
+  <!-- Ponto decorativo -->
+  <circle cx="167" cy="45" r="2" fill="#B8956A" opacity="0.7"/>
+  
+  <!-- Tagline (opcional) -->
+  <text x="25" 
+        y="54" 
+        font-family="Inter, sans-serif" 
+        font-size="9" 
+        font-style="italic"
+        fill="#9C8D7E"
+        letter-spacing="0.5">
+    Agende com tranquilidade
+  </text>
+  
+  <!-- Ornamento decorativo direito (opcional) -->
+  <path d="M 185 30 Q 190 25 195 30 Q 190 35 185 30" 
+        fill="none" 
+        stroke="#D4C4A8" 
+        stroke-width="1.5" 
+        opacity="0.6"/>
+</svg>

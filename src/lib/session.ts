@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 
 import { getFirebaseAuth } from "@/lib/firebaseAdmin";
 
-export const SESSION_COOKIE = "zapagenda_session";
+export const SESSION_COOKIE = "datempo_session";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 5; // 5 dias
 
 export async function getAuthenticatedUser() {

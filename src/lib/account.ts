@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/lib/account.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/lib/account.ts
 
 import { getDb } from "@/lib/firebaseAdmin";
 import {

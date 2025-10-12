@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         return NextResponse.json(
           {
             error:
-              "Plano inativo. Acesse o dashboard do ZapAgenda para ativar ou renovar seu plano antes de aceitar novos agendamentos.",
+              "Plano inativo. Acesse o dashboard do Agende Mais para ativar ou renovar seu plano antes de aceitar novos agendamentos.",
           },
           { status: 403 }
         );
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     const humanDate = start.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
     const confirmMsg =
-      `✅ *ZapAgenda* — Agendamento confirmado!\n` +
+      `✅ *Agende Mais* — Agendamento confirmado!\n` +
       `Agenda: *${linkedCalendar.description || linkedCalendar.summary}*\n` +
       `Cliente: *${body.customerName}*\n` +
       `Data/Hora: *${humanDate}*\n\n` +

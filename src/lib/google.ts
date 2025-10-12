@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/lib/google.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/lib/google.ts
 
 import { google } from "googleapis";
 import { OAuth2Client } from "google-auth-library";

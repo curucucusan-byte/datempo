@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/api/appointments/route.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/app/api/appointments/route.ts
 
 import { NextResponse } from "next/server";
 

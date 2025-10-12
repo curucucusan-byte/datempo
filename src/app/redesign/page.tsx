@@ -15,9 +15,9 @@ export default function RedesignHome() {
       <header className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="inline-flex h-12 w-12 items-center justify-center rounded-[22px] bg-emerald-50 ring-1 ring-emerald-100">
-            <Image src="/logos/whats-logo-and-name-green.svg" alt="ZapAgenda" width={34} height={34} />
+            <Image src="/logos/whats-logo-and-name-green.svg" alt="DaTempo" width={34} height={34} />
           </span>
-          <span className="font-semibold tracking-tight text-slate-900">ZapAgenda</span>
+          <span className="font-semibold tracking-tight text-slate-900">DaTempo</span>
         </div>
 
         <nav className="hidden sm:flex gap-6 text-sm text-slate-600">
@@ -201,7 +201,7 @@ export default function RedesignHome() {
       </main>
 
       <footer className="mx-auto max-w-6xl px-6 py-10 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} ZapAgenda — Agendamentos via WhatsApp
+        © {new Date().getFullYear()} DaTempo — Agendamentos via WhatsApp
       </footer>
     </div>
   );

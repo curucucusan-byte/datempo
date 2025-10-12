@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ACTIVE_PLANS, type ActivePlanId } from "@/lib/plans";
+import ImageCarousel from "./ImageCarousel";
+import Header from "@/components/Header";
 
 export default function HomeV2() {
   const planOrder: ActivePlanId[] = ["free", "starter", "pro"];
@@ -11,137 +13,61 @@ export default function HomeV2() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm">
-                <svg viewBox="0 0 24 24" className="h-6 w-6 text-white" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </div>
-              <span className="text-lg font-bold text-slate-900">Agende Mais</span>
-            </div>
-
-            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-              <a href="#recursos" className="hover:text-slate-900 transition-colors">Recursos</a>
-              <a href="#planos" className="hover:text-slate-900 transition-colors">Planos</a>
-              <a href="#faq" className="hover:text-slate-900 transition-colors">FAQ</a>
-              <Link href="/login" className="hover:text-slate-900 transition-colors">Entrar</Link>
-            </nav>
-
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="hidden sm:inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                Entrar
-              </Link>
-              <a
-                href="#planos"
-                className="inline-flex items-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition-colors"
-              >
-                Ver planos
-              </a>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#FDFBF7]">
+      {/* HEADER LIMPO */}
+      <Header />
 
       {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+      <section className="relative overflow-hidden">
+        {/* Fundo com gradiente verde + madeira */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-[#F5EFE6] to-amber-50 opacity-60"></div>
+        
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 mb-6">
-                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                Integração completa WhatsApp + Google
+              {/* Badge com logos (sem texto) */}
+              <div className="inline-flex items-center gap-3 rounded-full border-2 border-emerald-200 bg-white px-5 py-2.5 shadow-sm mb-6">
+                <Image src="/logos/whatsapp-green-filled.png" alt="WhatsApp" width={28} height={28} className="rounded" />
+                <div className="h-5 w-px bg-slate-200"></div>
+                <Image src="/logos/calendar.png" alt="Google Calendar" width={28} height={28} className="rounded" />
               </div>
               
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 leading-tight tracking-tight">
-                Agendamentos automáticos
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-sky-600 mt-2">
-                  via WhatsApp
+              <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold text-[#2D3748] leading-tight">
+                Onde tudo
+                <span className="block bg-gradient-to-r from-emerald-600 to-[#8B6F47] bg-clip-text text-transparent mt-2">
+                  dá tempo
                 </span>
               </h1>
 
-              <p className="mt-6 text-xl text-slate-600 leading-relaxed max-w-2xl">
-                Compartilhe um link único. O cliente escolhe o horário disponível e confirma direto no WhatsApp. Sincronização automática com Google Agenda.
+              <p className="mt-6 text-xl text-[#4A5568] leading-relaxed max-w-2xl">
+                Agendamentos automáticos via WhatsApp. Sem pressa, sem complicação. 
+                Como no escritório da vovó, onde sempre havia tempo para o cafezinho ☕
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <a
-                  href="#planos"
-                  className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-emerald-500 transition-all hover:scale-105"
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all"
                 >
                   Começar agora
                   <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
-                </a>
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center rounded-full border-2 border-slate-200 px-8 py-4 text-lg font-semibold text-slate-900 hover:bg-slate-50 transition-colors"
-                >
-                  Acessar painel
                 </Link>
-              </div>
-
-              {/* Logos Strip */}
-              <div className="mt-12 flex items-center gap-6 flex-wrap">
-                <span className="text-sm font-medium text-slate-500">Conecta com:</span>
-                <div className="flex items-center gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-2 shadow-sm">
-                  <Image src="/logos/calendar.png" alt="Google Calendar" width={24} height={24} className="rounded" />
-                  <span className="text-sm font-medium text-slate-700">Google Calendar</span>
-                </div>
-                <div className="flex items-center gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-2 shadow-sm">
-                  <Image src="/logos/whatsapp-green-filled.png" alt="WhatsApp" width={24} height={24} className="rounded" />
-                  <span className="text-sm font-medium text-slate-700">WhatsApp</span>
-                </div>
+                <Link
+                  href="#planos"
+                  className="inline-flex items-center justify-center rounded-xl border-2 border-[#8B6F47] bg-transparent px-8 py-4 text-lg font-semibold text-[#8B6F47] hover:bg-[#8B6F47] hover:text-white transition-all"
+                >
+                  Ver planos
+                </Link>
               </div>
             </div>
 
             {/* Hero Visual */}
             <div className="relative lg:pl-8">
-              <div className="absolute -inset-4 bg-gradient-to-r from-emerald-100 to-sky-100 rounded-3xl opacity-20 blur-3xl"></div>
-              <div className="relative rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl">
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-sm font-medium text-slate-500">Agenda Online</span>
-                  <div className="flex items-center gap-2 text-sm text-emerald-600">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                    Disponível
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="rounded-2xl bg-slate-50 p-5">
-                    <div className="text-base font-semibold text-slate-900 mb-3">Próximos horários</div>
-                    <ul className="space-y-3 text-base">
-                      <li className="flex items-center justify-between">
-                        <span className="text-slate-700">Ter, 10h00</span>
-                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">Livre</span>
-                      </li>
-                      <li className="flex items-center justify-between">
-                        <span className="text-slate-700">Qua, 14h30</span>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-500">Ocupado</span>
-                      </li>
-                      <li className="flex items-center justify-between">
-                        <span className="text-slate-700">Qui, 09h00</span>
-                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">Livre</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="rounded-2xl bg-sky-50 p-5">
-                    <div className="text-base font-semibold text-slate-900 mb-2">Cliente</div>
-                    <div className="text-base text-slate-700">Ana Silva • +55 11 9xxxx-xxxx</div>
-                    <button className="mt-4 w-full rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-500 transition-colors">
-                      Confirmar via WhatsApp
-                    </button>
-                  </div>
-                </div>
+              <div className="absolute -inset-4 bg-[#EDE5D8] rounded-3xl opacity-30 blur-3xl"></div>
+              <div className="relative rounded-3xl border-2 border-[#EDE5D8] bg-white p-8 sm:p-12 shadow-2xl">
+                <ImageCarousel />
               </div>
             </div>
           </div>
@@ -149,14 +75,14 @@ export default function HomeV2() {
       </section>
 
       {/* RECURSOS */}
-      <section id="recursos" className="py-20 bg-white">
+      <section id="recursos" className="py-20 bg-gradient-to-b from-white to-emerald-50/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
-              Tudo que você precisa para automatizar
+            <h2 className="font-serif text-4xl sm:text-5xl font-bold text-[#2D3748] mb-4">
+              Tudo tranquilo, tudo no tempo certo
             </h2>
-            <p className="text-xl text-slate-600">
-              Recursos pensados para negócios locais que querem profissionalizar sem complicação
+            <p className="text-xl text-[#4A5568]">
+              Recursos pensados para quem valoriza o tempo (seu e do cliente)
             </p>
           </div>
 
@@ -165,64 +91,74 @@ export default function HomeV2() {
               {
                 icon: "🔗",
                 title: "Link de agendamento",
-                description: "Compartilhe um link único no WhatsApp. Cliente escolhe horário e confirma na hora.",
+                description: "Cliente escolhe o horário e confirma pelo WhatsApp. Simples assim.",
                 color: "emerald"
               },
               {
                 icon: "📅",
-                title: "Sincronização Google",
-                description: "Integração bidirecional automática com Google Calendar para evitar conflitos.",
-                color: "sky"
+                title: "Google Calendar",
+                description: "Sincronização automática. Sem conflitos, sem preocupação.",
+                color: "blue"
               },
               {
                 icon: "💬",
-                title: "Lembretes automáticos",
-                description: "Configure lembretes por WhatsApp antes do compromisso (planos Starter e Pro).",
-                color: "violet"
+                title: "Lembretes gentis",
+                description: "Avisos automáticos pelo WhatsApp. Quando quiser configurar.",
+                color: "emerald"
               },
               {
                 icon: "💳",
-                title: "Pagamento antecipado",
-                description: "Opcional: exija pagamento via Pix ou cartão para confirmar a reserva.",
+                title: "Pagamento opcional",
+                description: "Pix ou cartão antecipado. Se fizer sentido pro seu negócio.",
                 color: "amber"
               },
               {
                 icon: "📊",
-                title: "Painel completo",
-                description: "Gerencie horários, veja reservas e acompanhe métricas em tempo real.",
-                color: "rose"
+                title: "Painel simples",
+                description: "Tudo que você precisa ver, sem firula. Direto ao ponto.",
+                color: "slate"
               },
               {
                 icon: "⭐",
                 title: "Reviews Google",
-                description: "Solicite avaliações no Google automaticamente após o atendimento (plano Pro).",
-                color: "indigo"
+                description: "Peça avaliações na hora certa. Seus clientes vão adorar.",
+                color: "yellow"
               }
-            ].map((feature, idx) => (
-              <div
-                key={idx}
-                className="group rounded-3xl border border-slate-200 bg-white p-8 hover:shadow-xl transition-all hover:-translate-y-1"
-              >
-                <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-${feature.color}-50 text-3xl mb-5`}>
-                  {feature.icon}
+            ].map((feature, idx) => {
+              const colorClasses = {
+                emerald: "bg-emerald-50 border-emerald-200 hover:border-emerald-400 hover:shadow-emerald-100",
+                blue: "bg-blue-50 border-blue-200 hover:border-blue-400 hover:shadow-blue-100",
+                amber: "bg-amber-50 border-amber-200 hover:border-amber-400 hover:shadow-amber-100",
+                slate: "bg-slate-50 border-slate-200 hover:border-slate-400 hover:shadow-slate-100",
+                yellow: "bg-yellow-50 border-yellow-200 hover:border-yellow-400 hover:shadow-yellow-100"
+              };
+              
+              return (
+                <div
+                  key={idx}
+                  className={`group rounded-2xl border-2 p-8 hover:shadow-xl transition-all ${colorClasses[feature.color as keyof typeof colorClasses]}`}
+                >
+                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-white border-2 border-current opacity-80 text-3xl mb-5">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-[#2D3748] mb-3">{feature.title}</h3>
+                  <p className="text-base text-[#4A5568] leading-relaxed">{feature.description}</p>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
-                <p className="text-base text-slate-600 leading-relaxed">{feature.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* PLANOS */}
-      <section id="planos" className="py-20 bg-slate-50">
+      <section id="planos" className="py-20 bg-gradient-to-br from-amber-50 via-white to-emerald-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
-              Planos simples e transparentes
+            <h2 className="font-serif text-4xl sm:text-5xl font-bold text-[#2D3748] mb-4">
+              Planos sem enrolação
             </h2>
-            <p className="text-xl text-slate-600">
-              Escolha o plano ideal para o seu volume de agendamentos
+            <p className="text-xl text-[#4A5568]">
+              Escolha conforme cresce. Tudo muito claro.
             </p>
           </div>
 
@@ -377,26 +313,26 @@ export default function HomeV2() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-slate-200 bg-white py-12">
+      <footer className="border-t border-emerald-100 bg-gradient-to-br from-emerald-50 to-amber-50 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600">
-                <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg">
+                <span className="text-xl">🕰️</span>
               </div>
-              <span className="font-bold text-slate-900">Agende Mais</span>
+              <span className="font-serif font-bold text-xl bg-gradient-to-r from-emerald-700 to-[#8B6F47] bg-clip-text text-transparent">
+                DaTempo
+              </span>
             </div>
             
             <div className="flex items-center gap-6 text-sm text-slate-600">
-              <Link href="/termos" className="hover:text-slate-900">Termos</Link>
-              <Link href="/privacidade" className="hover:text-slate-900">Privacidade</Link>
-              <Link href="/regras" className="hover:text-slate-900">Regras</Link>
+              <Link href="/termos" className="hover:text-emerald-600 transition-colors">Termos</Link>
+              <Link href="/privacidade" className="hover:text-emerald-600 transition-colors">Privacidade</Link>
+              <Link href="/regras" className="hover:text-emerald-600 transition-colors">Regras</Link>
             </div>
 
             <p className="text-sm text-slate-500">
-              © {new Date().getFullYear()} Agende Mais — Agendamentos Automáticos
+              © {new Date().getFullYear()} DaTempo — Onde tudo dá tempo ☕
             </p>
           </div>
         </div>

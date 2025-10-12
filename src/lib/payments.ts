@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/lib/payments.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/lib/payments.ts
 
 import { getDb } from "@/lib/firebaseAdmin";
 import { getStripeClient, getOrCreateStripeCustomer, createSubscription, createPixPaymentIntent } from "@/lib/stripe";
@@ -86,7 +86,7 @@ export async function createCreditCardSubscription(
     currency: "brl",
     recurring: { interval: "month" },
     product_data: {
-      name: `ZapAgenda - Plano ${planDetails.label}`,
+      name: `DaTempo - Plano ${planDetails.label}`,
     },
   });
 

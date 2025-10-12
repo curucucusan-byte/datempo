@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/api/webhooks/stripe/route.ts
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/app/api/webhooks/stripe/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { getStripeClient } from "@/lib/stripe";

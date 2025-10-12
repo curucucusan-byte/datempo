@@ -1,19 +1,17 @@
 import { redirect } from "next/navigation";
 
-import { ensureAccount, getReminderSettings, isAccountActive } from "@/lib/account";
+import { ensureAccount, isAccountActive } from "@/lib/account";
 import { getAuthenticatedUser } from "@/lib/session";
 import { ACTIVE_PLANS, getPlanDetails, isActivePlan } from "@/lib/plans";
 import { listSubscriptionsByUid } from "@/lib/payments";
 
 import Link from "next/link";
+import { LayoutDashboard, Calendar, Settings } from "lucide-react";
 
-import AppointmentList from "./AppointmentList";
 import LogoutButton from "./LogoutButton";
-import ReminderSettings from "./ReminderSettings";
-import CalendarsCard from "./minha-agenda/CalendarsCard";
 
 export const metadata = {
-  title: "Dashboard — Agende Mais",
+  title: "Dashboard — DaTempo",
 };
 
 export default async function DashboardPage({
@@ -39,12 +37,7 @@ export default async function DashboardPage({
     } catch {}
   }
   const planDetails = getPlanDetails(account.plan);
-  const reminders = getReminderSettings(account);
   const accountActive = isAccountActive(account);
-  const planLimits = isActivePlan(account.plan) ? ACTIVE_PLANS[account.plan].limits : null;
-  const requiredPlanLabel = ACTIVE_PLANS.starter.label;
-  const maxAutoReminders = planLimits?.maxAutoRemindersPerAppointment ?? 0;
-  const canEditReminders = accountActive && maxAutoReminders > 0;
 
   const trialWarning =
     account.status === "trial" && account.trialEndsAt
@@ -57,12 +50,12 @@ export default async function DashboardPage({
 
   const planInactive = account.status === "canceled" || account.plan === "inactive";
 
-  const activeTab = (Array.isArray(searchParams?.tab) ? searchParams?.tab[0] : searchParams?.tab) || "resumo";
+  const activeTab = (Array.isArray(searchParams?.tab) ? searchParams?.tab[0] : searchParams?.tab) || "visao-geral";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Modern Header */}
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
+      <header className="border-b border-slate-200 bg-white sticky top-0 z-50 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
@@ -71,7 +64,7 @@ export default async function DashboardPage({
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
               </div>
-              <span className="text-lg font-bold text-slate-900">Agende Mais</span>
+              <span className="text-lg font-bold text-slate-900">DaTempo</span>
             </Link>
             <div className="flex items-center gap-3">
               <Link
@@ -124,43 +117,90 @@ export default async function DashboardPage({
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Tabs */}
-        <div className="flex gap-2 rounded-full bg-slate-100 p-1 text-sm w-fit border border-slate-200">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {/* New 3-Tab Navigation */}
+        <div className="flex gap-3 rounded-xl bg-white border border-slate-200 p-2 text-sm w-fit shadow-sm mb-8">
           <Link
-            href="/dashboard?tab=resumo"
-            className={`rounded-full px-6 py-2 font-medium transition-colors ${activeTab === "resumo" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+            href="/dashboard/visao-geral"
+            className={`flex items-center gap-2 rounded-lg px-5 py-3 font-medium transition-all ${
+              activeTab === "visao-geral" 
+                ? "bg-blue-600 text-white shadow-md" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+            }`}
           >
-            Resumo
+            <LayoutDashboard className="w-4 h-4" />
+            Visão Geral
           </Link>
           <Link
-            href="/dashboard?tab=agenda"
-            className={`rounded-full px-6 py-2 font-medium transition-colors ${activeTab === "agenda" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+            href="/dashboard/agendamentos"
+            className={`flex items-center gap-2 rounded-lg px-5 py-3 font-medium transition-all ${
+              activeTab === "agendamentos" 
+                ? "bg-blue-600 text-white shadow-md" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+            }`}
           >
-            Minha agenda
+            <Calendar className="w-4 h-4" />
+            Agendamentos
+          </Link>
+          <Link
+            href="/dashboard/configuracoes"
+            className={`flex items-center gap-2 rounded-lg px-5 py-3 font-medium transition-all ${
+              activeTab === "configuracoes" 
+                ? "bg-blue-600 text-white shadow-md" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            Configurações
           </Link>
         </div>
 
-        {activeTab === "agenda" ? (
-          <CalendarsCard />
-        ) : (
-          <>
-            <ReminderSettings
-              initialEnabled={reminders.enabled}
-              initialWindowMinutes={reminders.windowMinutes}
-              canEdit={canEditReminders}
-              planLabel={planDetails?.label ?? "Inativo"}
-              planId={account.plan}
-              requiredPlanLabel={requiredPlanLabel}
-              maxAutoReminders={maxAutoReminders}
-            />
-
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-              <h2 className="text-2xl font-bold text-slate-900 mb-6">Agendamentos</h2>
-              <AppointmentList />
+        {/* Info Card - Default view when on main dashboard */}
+        <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-8 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="rounded-xl bg-blue-100 p-3">
+              <LayoutDashboard className="w-8 h-8 text-blue-600" />
             </div>
-          </>
-        )}
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Novo Dashboard! 🎉</h2>
+              <p className="text-slate-600 mb-6">
+                Organizamos melhor suas informações em três seções principais. Comece pela <strong>Visão Geral</strong> para ver suas métricas e próximos agendamentos.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Link 
+                  href="/dashboard/visao-geral"
+                  className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md transition-all"
+                >
+                  <LayoutDashboard className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-1">Visão Geral</h3>
+                    <p className="text-sm text-slate-600">Métricas, próximos agendamentos e progresso do setup</p>
+                  </div>
+                </Link>
+                <Link 
+                  href="/dashboard/agendamentos"
+                  className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md transition-all"
+                >
+                  <Calendar className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-1">Agendamentos</h3>
+                    <p className="text-sm text-slate-600">Todos os seus agendamentos com filtros e busca</p>
+                  </div>
+                </Link>
+                <Link 
+                  href="/dashboard/configuracoes"
+                  className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md transition-all"
+                >
+                  <Settings className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-1">Configurações</h3>
+                    <p className="text-sm text-slate-600">Perfil, lembretes, integrações e preferências</p>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );

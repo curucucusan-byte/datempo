@@ -1,0 +1,28 @@
+<!-- Logo Agende Mais - Versão 3: Moderno com Relógio -->
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Círculo principal -->
+  <circle cx="100" cy="100" r="70" fill="url(#gradient3)"/>
+  
+  <!-- Ponteiros do relógio -->
+  <line x1="100" y1="100" x2="100" y2="60" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="130" y2="100" stroke="white" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Marcações do relógio -->
+  <circle cx="100" cy="50" r="4" fill="white"/>
+  <circle cx="100" cy="150" r="4" fill="white"/>
+  <circle cx="50" cy="100" r="4" fill="white"/>
+  <circle cx="150" cy="100" r="4" fill="white"/>
+  
+  <!-- Check pequeno -->
+  <path d="M 85 95 L 95 105 L 115 85" stroke="#0ea5e9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Centro do relógio -->
+  <circle cx="100" cy="100" r="6" fill="white"/>
+</svg>

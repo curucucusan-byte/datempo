@@ -1,4 +1,4 @@
-// Caminho do arquivo: /home/ubuntu/zapagenda/zapagenda/src/app/agenda/[slug]/page.tsx
+// Caminho do arquivo: /home/ubuntu/datempo/datempo/src/app/agenda/[slug]/page.tsx
 
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return { title: "Agenda não encontrada" };
   }
   return {
-    title: `Agende com ${linkedCalendar.summary} — Agende Mais`,
+    title: `Agende com ${linkedCalendar.summary} — DaTempo`,
     description: linkedCalendar.description,
   };
 }

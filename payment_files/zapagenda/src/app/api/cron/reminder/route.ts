@@ -136,7 +136,7 @@ export async function POST(req: Request) {
       }
 
       const message =
-        `⏰ *Lembrete ZapAgenda*\n` +
+        `⏰ *Lembrete Agende Mais*\n` +
         `Você tem ${appt.service} com ${prof?.name ?? appt.slug} em ${formatRelative(minutesUntil)}.\n` +
         `Data/Hora: *${humanDate}*\n\n` +
         `Se precisar reagendar, responda esta mensagem.`;

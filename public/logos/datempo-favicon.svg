@@ -1,0 +1,42 @@
+<!-- Favicon DaTempo - "DT" minimalista -->
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FDFBF7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F5EFE6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="text" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B6F47;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B8956A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fundo papel -->
+  <rect width="64" height="64" rx="12" fill="url(#bg)"/>
+  
+  <!-- Borda sutil -->
+  <rect width="64" height="64" rx="12" fill="none" stroke="#EDE5D8" stroke-width="1"/>
+  
+  <!-- Letra "D" -->
+  <text x="10" 
+        y="44" 
+        font-family="Georgia, serif" 
+        font-size="32" 
+        font-weight="700" 
+        fill="url(#text)">
+    D
+  </text>
+  
+  <!-- Letra "T" -->
+  <text x="34" 
+        y="44" 
+        font-family="Georgia, serif" 
+        font-size="32" 
+        font-weight="700" 
+        fill="url(#text)">
+    T
+  </text>
+  
+  <!-- Ponto decorativo -->
+  <circle cx="32" cy="52" r="1.5" fill="#B8956A" opacity="0.5"/>
+</svg>
