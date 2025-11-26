@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ACTIVE_PLANS, CALENDAR_SWAP_INTERVAL_MS, isActivePlan, type ActivePlanId, type PlanId } from "@/lib/plans";
 import { LinkedCalendar } from "@/lib/google"; // Importar o tipo LinkedCalendar
+import { WorkHoursSelector } from "../components/WorkHoursSelector";
 
 const DEFAULT_SLOT_DURATION = 60;
 const DEFAULT_WORK_HOURS: Record<string, string[]> = {
@@ -716,7 +717,7 @@ export default function CalendarsCard() {
                         <p className="mt-1 text-[10px] text-slate-500">Arquivos em public/. Ex.: public/agenda-logos/seu-slug/logo.webp</p>
                         <div className="mt-2 flex items-center gap-2">
                           <input
-                            ref={(el) => (uploadRefs.current[c.id] = el)}
+                            ref={(el) => { uploadRefs.current[c.id] = el; }}
                             type="file"
                             accept="image/*"
                             className="text-xs"
@@ -740,7 +741,7 @@ export default function CalendarsCard() {
                       </div>
                     </div>
 
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <div className="space-y-4">
                       <div>
                         <label className="block text-xs text-slate-300 mb-1">Duração padrão (minutos)</label>
                         <input
@@ -748,22 +749,26 @@ export default function CalendarsCard() {
                           min={5}
                           value={draft.slotDurationMinutes}
                           onChange={(e) => handleDraftChange(c.id, "slotDurationMinutes", e.target.value)}
-                          className="w-full rounded-xl bg-white/10 px-3 py-2 text-sm ring-1 ring-white/15"
+                          className="w-full rounded-xl bg-white/10 px-3 py-2 text-sm ring-1 ring-white/15 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                           placeholder="60"
                         />
                         <p className="mt-1 text-[10px] text-slate-500">Usado para gerar os horários disponíveis.</p>
                       </div>
 
                       <div>
-                        <label className="block text-xs text-slate-300 mb-1">Horários por dia (JSON)</label>
-                        <textarea
-                          value={draft.workHours}
-                          onChange={(e) => handleDraftChange(c.id, "workHours", e.target.value)}
-                          rows={4}
-                          className="w-full rounded-xl bg-white/10 px-3 py-2 text-xs font-mono ring-1 ring-white/15"
-                          spellCheck={false}
+                        <label className="block text-xs text-slate-300 mb-2">Horários de Trabalho</label>
+                        <WorkHoursSelector
+                          value={(() => {
+                            try {
+                              return JSON.parse(draft.workHours);
+                            } catch {
+                              return DEFAULT_WORK_HOURS;
+                            }
+                          })()}
+                          onChange={(newHours) => {
+                            handleDraftChange(c.id, "workHours", JSON.stringify(newHours, null, 2));
+                          }}
                         />
-                        <p className="mt-1 text-[10px] text-slate-500">Use horários no formato HH:MM. Ex.: {WORK_HOURS_EXAMPLE}</p>
                       </div>
                     </div>
 
