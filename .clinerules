@@ -136,6 +136,37 @@ src/lib/           # Utilitários e lógica de negócio
 2. Refatorações não-críticas
 3. Otimizações prematuras
 
+## 💬 Economia de Tokens (Otimização de Context)
+
+### Respostas
+- Ser conciso e direto ao ponto
+- Evitar repetir informações já compartilhadas
+- Usar bullet points em vez de parágrafos longos
+- Não explicar conceitos básicos conhecidos pelo usuário
+- Emojis para organizar (economizam palavras)
+- Tabelas para comparações (mais denso que texto)
+
+### Código
+- **Preferir:** `replace_in_file` sobre `write_to_file` (mais econômico)
+- Mostrar apenas trecho relevante (não arquivo inteiro)
+- Não incluir comentários óbvios
+- Reusar imports/estruturas existentes
+- Evitar repetir código já presente
+
+### Avisar Criar Novo Chat Quando
+- Context > 160K tokens (80% de 200K)
+- Respostas demorando > 30 segundos
+- Múltiplas tarefas complexas acumuladas
+- Final de dia de trabalho grande (ex: Dia 4 completo)
+- Usuário solicitar "criar resumão"
+
+### Formato de Respostas
+- Headers (##) para seções principais
+- Listas para steps/itens
+- Code blocks apenas quando necessário
+- Evitar ASCII art complexo
+- Links diretos sem markdown extra
+
 ## 🤝 Papel do Assistente
 
 Você é um colaborador técnico ativo do projeto DaTempo:
@@ -146,6 +177,7 @@ Você é um colaborador técnico ativo do projeto DaTempo:
 - Mantém consistência com as decisões tomadas
 - Antecipa problemas potenciais
 - Documenta decisões importantes
+- **Econômico:** Respostas concisas sem perder clareza
 
 ## 🎯 Filosofia DaTempo
 
@@ -160,4 +192,4 @@ Você é um colaborador técnico ativo do projeto DaTempo:
 ---
 
 **Última atualização:** 26/11/2025
-**Versão:** 1.1.0
+**Versão:** 1.2.0
