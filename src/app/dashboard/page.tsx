@@ -124,7 +124,7 @@ export default async function DashboardPage({
             href="/dashboard/visao-geral"
             className={`flex items-center gap-2 rounded-lg px-5 py-3 font-medium transition-all ${
               activeTab === "visao-geral" 
-                ? "bg-blue-600 text-white shadow-md" 
+                ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md" 
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
@@ -135,7 +135,7 @@ export default async function DashboardPage({
             href="/dashboard/agendamentos"
             className={`flex items-center gap-2 rounded-lg px-5 py-3 font-medium transition-all ${
               activeTab === "agendamentos" 
-                ? "bg-blue-600 text-white shadow-md" 
+                ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md" 
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
@@ -146,7 +146,7 @@ export default async function DashboardPage({
             href="/dashboard/configuracoes"
             className={`flex items-center gap-2 rounded-lg px-5 py-3 font-medium transition-all ${
               activeTab === "configuracoes" 
-                ? "bg-blue-600 text-white shadow-md" 
+                ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md" 
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
@@ -156,10 +156,10 @@ export default async function DashboardPage({
         </div>
 
         {/* Info Card - Default view when on main dashboard */}
-        <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-8 shadow-sm">
+        <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-8 shadow-sm">
           <div className="flex items-start gap-4">
-            <div className="rounded-xl bg-blue-100 p-3">
-              <LayoutDashboard className="w-8 h-8 text-blue-600" />
+            <div className="rounded-xl bg-emerald-100 p-3">
+              <LayoutDashboard className="w-8 h-8 text-emerald-600" />
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Novo Dashboard! 🎉</h2>
@@ -169,9 +169,9 @@ export default async function DashboardPage({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Link 
                   href="/dashboard/visao-geral"
-                  className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md transition-all"
+                  className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md hover:border-emerald-200 transition-all"
                 >
-                  <LayoutDashboard className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <LayoutDashboard className="w-5 h-5 text-emerald-600 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">Visão Geral</h3>
                     <p className="text-sm text-slate-600">Métricas, próximos agendamentos e progresso do setup</p>
@@ -179,9 +179,9 @@ export default async function DashboardPage({
                 </Link>
                 <Link 
                   href="/dashboard/agendamentos"
-                  className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md transition-all"
+                  className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md hover:border-emerald-200 transition-all"
                 >
-                  <Calendar className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <Calendar className="w-5 h-5 text-emerald-600 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">Agendamentos</h3>
                     <p className="text-sm text-slate-600">Todos os seus agendamentos com filtros e busca</p>
@@ -189,9 +189,9 @@ export default async function DashboardPage({
                 </Link>
                 <Link 
                   href="/dashboard/configuracoes"
-                  className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md transition-all"
+                  className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md hover:border-emerald-200 transition-all"
                 >
-                  <Settings className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <Settings className="w-5 h-5 text-emerald-600 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">Configurações</h3>
                     <p className="text-sm text-slate-600">Perfil, lembretes, integrações e preferências</p>

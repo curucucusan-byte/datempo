@@ -65,7 +65,7 @@ function ToggleSwitch({ enabled, onChange }: { enabled: boolean; onChange: (valu
       type="button"
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? "bg-blue-600" : "bg-gray-300"
+        enabled ? "bg-emerald-600" : "bg-gray-300"
       }`}
     >
       <span
@@ -84,8 +84,8 @@ function SettingsSectionComponent({ section }: { section: SettingsSection }) {
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <Icon className="w-5 h-5 text-blue-600" />
+        <div className="p-2 bg-emerald-100 rounded-lg">
+          <Icon className="w-5 h-5 text-emerald-600" />
         </div>
         <div>
           <h2 className="text-lg font-semibold text-gray-900">{section.title}</h2>
@@ -113,7 +113,7 @@ function SettingsSectionComponent({ section }: { section: SettingsSection }) {
                 name={field.name}
                 required={field.required}
                 defaultValue={field.defaultValue as string}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 {field.options?.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -129,7 +129,7 @@ function SettingsSectionComponent({ section }: { section: SettingsSection }) {
                 placeholder={field.placeholder}
                 defaultValue={field.defaultValue as string}
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             ) : (
               <input
@@ -139,7 +139,7 @@ function SettingsSectionComponent({ section }: { section: SettingsSection }) {
                 required={field.required}
                 placeholder={field.placeholder}
                 defaultValue={field.defaultValue as string | number}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             )}
 
@@ -154,7 +154,7 @@ function SettingsSectionComponent({ section }: { section: SettingsSection }) {
       <div className="flex gap-3 mt-6 pt-6 border-t border-gray-100">
         <button
           type="submit"
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors text-sm font-medium"
         >
           <Save className="w-4 h-4" />
           Salvar Alterações
