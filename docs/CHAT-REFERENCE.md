@@ -1,6 +1,6 @@
 # 📌 Referência Rápida - DaTempo Chat Context
 
-> **Última atualização:** 26/11/2025 07:46
+> **Última atualização:** 26/11/2025 08:03
 > **Context Window:** Este arquivo deve ter < 2000 tokens para ser eficiente
 > **Como usar:** Mencione este arquivo (`@CHAT-REFERENCE.md`) ao iniciar novo chat
 
@@ -11,7 +11,7 @@
 **Nome:** DaTempo  
 **Repo:** https://github.com/curucucusan-byte/datempo  
 **Branch:** main  
-**Último Commit:** `1cd2daf` - WorkHours visual selector
+**Último Commit:** `7ec0920` - Context transfer system
 
 **Progresso MVP:** 4/7 dias completos (57%)
 
@@ -25,14 +25,14 @@
 - ✅ Features fantasma removidas (Reviews Google, Links Inteligentes UI, Stripe UI)
 - ✅ Dashboard 100% padronizado (verde #10b981 + madeira #8B6F47)
 
-### Dia 4: Multi-Calendários UX ⭐
-- ✅ WorkHoursSelector component criado
-- ✅ Modo Simples (templates + seletor visual)
-- ✅ Modo Avançado (JSON editor)
-- ✅ 3 templates prontos (Comercial, Flexível, Tarde/Noite)
-- ✅ Integrado em CalendarsCard (já tinha 90% do sistema pronto!)
+### Dia 4: Multi-Calendários + Context System ⭐
+- ✅ WorkHoursSelector component (templates + UI visual)
+- ✅ Integrado em CalendarsCard
+- ✅ CHAT-REFERENCE.md (sistema de resumos)
+- ✅ .clinerules v1.2.0 (economia de tokens)
+- ✅ workflow-novo-chat.md (guia completo)
 
-**Descoberta importante:** Sistema de multi-calendários já estava quase completo, só precisava de melhor UX para WorkHours!
+**Sistema:** Context transfer entre chats funcionando! Use `@CHAT-REFERENCE.md` em novo chat.
 
 ---
 
@@ -64,26 +64,16 @@ Gradiente Logo: linear-gradient(to right, #10b981, #8B6F47)
 
 ---
 
-## 🚀 PRÓXIMO: Dia 5 (4-6h de trabalho)
+## 🚀 PRÓXIMO: Dia 5 (4-6h)
 
-### Páginas Legais + Analytics
+### Páginas Legais + GA4
 
-**Criar:**
-1. `src/app/termos/page.tsx` - Termos de Uso (template básico)
-2. `src/app/privacidade/page.tsx` - Política Privacidade (LGPD)
-3. `src/app/not-found.tsx` - 404 customizada (identidade DaTempo)
-4. `src/app/error.tsx` - 500 genérica
+1. Termos de Uso (`src/app/termos/page.tsx`)
+2. Privacidade LGPD (`src/app/privacidade/page.tsx`)
+3. 404/500 customizadas
+4. Google Analytics 4 + 5 eventos críticos
 
-**Implementar Google Analytics 4:**
-- Instalar no `src/app/layout.tsx`
-- 5 eventos críticos:
-  - `sign_up` (após OAuth)
-  - `calendar_connected` (primeiro calendário)
-  - `first_appointment_created`
-  - `link_shared` (copiar/QR/native)
-  - `booking_completed` (cliente agenda)
-
-**Estimativa:** Meio dia de trabalho
+**Estimativa:** 4-6h
 
 ---
 
@@ -147,22 +137,21 @@ Gradiente Logo: linear-gradient(to right, #10b981, #8B6F47)
 
 ## 🎯 Ao Iniciar Novo Chat
 
-**Você diz:**
+**Você:**
 ```
 @CHAT-REFERENCE.md
-Vamos continuar o Dia 5 do MVP?
+Continuar Dia 5?
 ```
 
-**Eu vou:**
-1. Ler este arquivo
-2. Entender contexto completo
-3. Continuar de onde paramos
-4. Seguir todas regras do .clinerules
+**IA:**
+- Lê este arquivo
+- Entende context
+- Continua trabalho
+- Segue .clinerules v1.2.0
 
 ---
 
-**🚨 Criar Novo Chat SE:**
-- Context > 160K tokens (80%)
-- Respostas > 30 segundos
-- Fim de dia de trabalho grande
-- Você solicitar resumão atualizado
+**🚨 CRIAR NOVO CHAT AGORA:**
+- Context: 84% (168K/200K) ⚠️
+- Sistema pronto para usar
+- Dia 4 completo
