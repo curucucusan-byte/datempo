@@ -10,7 +10,6 @@ export type PlanLimits = {
 
 export type PlanFeatures = {
   paymentAtBooking: boolean;
-  reviewsGoogle: boolean;
   noShowPaymentOption: boolean;
 };
 
@@ -39,13 +38,12 @@ export const ACTIVE_PLANS: Record<ActivePlanId, PlanDetails> = {
     trialDays: 0,
     limits: {
       maxConnectedCalendars: 1,
-      maxAppointmentsPerMonth: 50,
-      whatsappMessagesIncludedPerMonth: 50,
+      maxAppointmentsPerMonth: 30,
+      whatsappMessagesIncludedPerMonth: 30,
       maxAutoRemindersPerAppointment: 0,
     },
     features: {
       paymentAtBooking: false,
-      reviewsGoogle: false,
       noShowPaymentOption: false,
     },
     overage: {
@@ -53,65 +51,63 @@ export const ACTIVE_PLANS: Record<ActivePlanId, PlanDetails> = {
     },
     bullets: [
       "1 agenda Google conectada",
-      "50 agendamentos/mês",
-      "50 mensagens WhatsApp incluídas",
+      "30 agendamentos/mês",
+      "Confirmação via WhatsApp",
       "Sem lembretes automáticos",
     ],
   },
   starter: {
     id: "starter",
     label: "Starter",
-    monthlyPrice: 49,
-    priceDisplay: "R$ 49,00/mês",
+    monthlyPrice: 39,
+    priceDisplay: "R$ 39,00/mês",
     trialDays: 0,
     limits: {
       maxConnectedCalendars: 3,
-      maxAppointmentsPerMonth: 300,
-      whatsappMessagesIncludedPerMonth: 300,
-      maxAutoRemindersPerAppointment: 2,
+      maxAppointmentsPerMonth: 200,
+      whatsappMessagesIncludedPerMonth: 200,
+      maxAutoRemindersPerAppointment: 1,
     },
     features: {
-      paymentAtBooking: true,
-      reviewsGoogle: false,
-      noShowPaymentOption: true,
+      paymentAtBooking: false,
+      noShowPaymentOption: false,
     },
     overage: {
-      whatsappMessageBRL: 0.19,
+      whatsappMessageBRL: null,
     },
     bullets: [
       "Até 3 agendas Google",
-      "300 agendamentos/mês",
-      "300 mensagens WhatsApp incluídas (overage opcional)",
-      "Até 2 lembretes automáticos por agendamento",
-      "Pagamentos no ato opcionais",
+      "200 agendamentos/mês",
+      "Confirmação + 1 lembrete WhatsApp",
+      "Sem marca d'água",
+      "Suporte email (48h)",
     ],
   },
   pro: {
     id: "pro",
     label: "Pro",
-    monthlyPrice: 99,
-    priceDisplay: "R$ 99,00/mês",
+    monthlyPrice: 79,
+    priceDisplay: "R$ 79,00/mês",
     trialDays: 0,
     limits: {
-      maxConnectedCalendars: 20,
+      maxConnectedCalendars: 10,
       maxAppointmentsPerMonth: 1000,
       whatsappMessagesIncludedPerMonth: 1000,
       maxAutoRemindersPerAppointment: 3,
     },
     features: {
-      paymentAtBooking: true,
-      reviewsGoogle: true,
-      noShowPaymentOption: true,
+      paymentAtBooking: false,
+      noShowPaymentOption: false,
     },
     overage: {
-      whatsappMessageBRL: 0.17,
+      whatsappMessageBRL: null,
     },
     bullets: [
-      "Até 20 agendas Google",
+      "Até 10 agendas Google",
       "1.000 agendamentos/mês",
-      "1.000 mensagens WhatsApp incluídas (overage opcional)",
-      "Até 3 lembretes automáticos por agendamento",
-      "Reviews Google e cobrança de no-show",
+      "Lembretes ilimitados WhatsApp",
+      "PIX/Manual para pagamentos",
+      "Suporte prioritário (24h)",
     ],
   },
 };

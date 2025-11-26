@@ -1,0 +1,78 @@
+{
+  "mcpServers": {
+    "firebase": {
+      "description": "Firebase MCP Server - Acesso direto ao Firestore",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@firebase/mcp-server"
+      ],
+      "env": {
+        "FIREBASE_PROJECT_ID": "${FIREBASE_PROJECT_ID}",
+        "FIREBASE_CLIENT_EMAIL": "${FIREBASE_CLIENT_EMAIL}",
+        "FIREBASE_PRIVATE_KEY": "${FIREBASE_PRIVATE_KEY}"
+      },
+      "enabled": false,
+      "note": "Ativar quando precisar inspecionar/modificar Firestore diretamente"
+    },
+    "google-calendar": {
+      "description": "Google Calendar MCP Server - Consultar calendários",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@google/calendar-mcp-server"
+      ],
+      "env": {
+        "GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+        "GOOGLE_CLIENT_SECRET": "${GOOGLE_CLIENT_SECRET}"
+      },
+      "enabled": false,
+      "note": "Ativar para consultar calendários sem implementar código"
+    },
+    "filesystem": {
+      "description": "Filesystem MCP Server - Acesso ao sistema de arquivos",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/zola/Dispensary/zapagenda"
+      ],
+      "enabled": true,
+      "note": "Útil para operações em massa em arquivos"
+    },
+    "git": {
+      "description": "Git MCP Server - Operações git avançadas",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-git",
+        "--repository",
+        "/home/zola/Dispensary/zapagenda"
+      ],
+      "enabled": true,
+      "note": "Útil para commits, branches, logs, etc"
+    },
+    "datempo-custom": {
+      "description": "DaTempo Custom MCP Server - Ferramentas específicas do projeto",
+      "command": "node",
+      "args": [
+        ".mcp/datempo-server.js"
+      ],
+      "enabled": false,
+      "note": "Servidor MCP customizado com ferramentas específicas (criar quando necessário)"
+    }
+  },
+  "setup": {
+    "instructions": [
+      "1. Copiar variáveis de ambiente do .env.local para este arquivo",
+      "2. Habilitar servidores necessários (enabled: true)",
+      "3. Reiniciar Cline/VSCode para ativar",
+      "4. Testar com comandos MCP no chat"
+    ],
+    "examples": {
+      "firebase": "use_mcp_tool firebase read_collection {collection: 'appointments'}",
+      "git": "use_mcp_tool git log {limit: 10}",
+      "filesystem": "use_mcp_tool filesystem read_multiple_files {paths: ['src/app/**/*.tsx']}"
+    }
+  }
+}

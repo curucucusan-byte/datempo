@@ -1,0 +1,52 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CREDENCIAIS TEMPORÁRIAS - DaTempo
+# ⚠️ DELETAR APÓS CONFIGURAR TUDO!
+# ⚠️ NUNCA COMMITAR NO GIT!
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ━━━━ Informações do Projeto Firebase ━━━━
+FIREBASE_PROJECT_ID_REAL=datempo
+FIREBASE_AUTH_DOMAIN=datempo.firebaseapp.com
+FIREBASE_STORAGE_BUCKET=datempo.firebasestorage.app
+
+# ━━━━ Render (Descobrir depois) ━━━━
+RENDER_URL=https://?????.onrender.com
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ✅ Firebase Client SDK (COPIADO!)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyDXDXIQyKskiwIjpiBoDRAosZlD8Qm5nr4
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=datempo.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=datempo
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=datempo.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=1049507473325
+NEXT_PUBLIC_FIREBASE_APP_ID=1:1049507473325:web:448cde13b0c197863c6324
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-DDJ1WLH2Q9
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ✅ Firebase Admin SDK (COPIADO!)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIREBASE_PROJECT_ID=datempo
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@datempo.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCFb72Tw7WBLPlN\n4XyDxuKXCar0LiELmoRUVxqKAekjs/I+H0PdkE0b2feBPQ4U7YJZDj5rYWa0LmqN\n30eUcXC5Ms9mFYXK4awXF2vvDNkXJT3yU2UpUoADuHIqpyRgyFZtsRbZs9wq/Ji4\nrZDBsZQgSCd/OXZ07zWlM22KWsVKIBgwsA82XelNaCiLivXhlTeCLbiPgZwO69cR\nayHtsG8/EO3LL3R/WvvqXDC21QV2QkSnPORwZSAvQk/LcO/7xtj5OkcsdsrjB06Y\nNNZsA8mtOgUdR/uv9njkG9A9HLtzxlWrTOGeP1zL31WLKoLnqquF80qR6UHeQP65\neLVyUBVfAgMBAAECggEAOyGDTyHhIvc9GygbN4JBE1FzcnWmqy+0CHP5DMM//1RU\nuva76klyAi+bIKhfvyJpKvHG82rcSmhvS6NwYvXKUCeWBNTwzzEmQ61bZTm6Uils\nxB/0qlUm6X8pCIG8+y6MLlvVlm+/10TMoLo5dbwtugh/iD98oOEIUsbxeegzmV7v\nylwJiNq9G4SMt7orLl5sH+AzzhrQH/BeBHn6JqszswYHglpbmQGaXOFHDz4c2ts8\n/rQ9BKD/MBTfNsT/5Kj/3jvAtnOR74w2fR3F3KAzdhZjGHF0faBYIeKdiqxZUmVo\n6PjTcJ1IQ4pOIpIcc2VcxCDzttBg86QFz02Qx+fCAQKBgQC5csXoZjFeoTSy34qb\nhZa81kS4p+8tbOPnLg1rB7X6eJoYEGM6i2XBRThAqyKoQYIMjFwwI2eCf7zXbmiJ\nak6T2l1X2z30/v4TDmXbTym70tfYveMpRO25aaRhpIjAG5IWCsPpIKC4gVY6JqkT\nexdjr+aS0clesvmnOTRXUbgTgQKBgQC4M2rv45Tx2094mJDR4jHCa+lj6jGAm8ko\nhlWicTkSyahVjw9OvnD+pawlEjEVx6Pjv2eAwvxZJlO1OV29ajNi515GcO9sGmMO\nJd0g/srtV2oLGSKGuXqMpm2ijow5jZAEVdKtMw69q6t8125Z2Yu3UBWjxzX6uNqN\n2/JalqMY3wKBgQCc78EF4/2hrGCxgzWEWW/wDJAJiKyCz6SqTjGywsrA1XDqLmwa\n7j7FaTOqnmjs5MsOnXWik0OUj08bLOcwaxNmUiQuJm5vN5+CNuwBxSN3PH3HgSKN\nGTTodLtUmm3TzUE6gA+86Qy6N1HmUjNBNijcBs7krr5v8pwNZP6japeRgQKBgQCJ\nl47Xpk4J42IXmQ8EWEwHCIiL49IaWUQHi2DIOH8Dc7LURkqO7V6GOMa/4jjcJgZc\nBwuPeRb6mNCKXFGTPZMo297mC1IslAFN/iaRkQGQDG3f4GST8lSCX4chmA1SqFXd\nhyYZzjvCnks4s8twPjpJMf8YGaROpmpK8PK1jDRETQKBgEU2y1UefLZJlEswbCLK\n4yyGJQJAWOJK0nsB+00bmwCLK/RmzTt4tnCrLQ0xLMNAihGSKaUQptcR/yNIn//o\nOsswyiR9wz65K+IPMEQ7gm81v8LdQm8KxOUGxTC3E3YzHfDr2fnogl4LNGjq/FI5\n9bj5TbvnRgLUxhzMf7ISVFD3\n-----END PRIVATE KEY-----\n"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ⏳ Google OAuth (FALTA FAZER!)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Precisa criar OAuth Client ID:
+# https://console.cloud.google.com/apis/credentials
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📋 CHECKLIST
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ✅ Firebase Client SDK copiado
+# ✅ Firebase Admin SDK copiado
+# ⏳ PRÓXIMO: Google OAuth (criar Client ID)
+# ⏳ Descobrir URL do Render
+# ⏳ Configurar .env.local
+# ⏳ Configurar Render Environment Variables
+# ⏳ DELETAR ESTE ARQUIVO!

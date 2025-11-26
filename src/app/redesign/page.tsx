@@ -163,11 +163,6 @@ export default function RedesignHome() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {plan.features.paymentAtBooking && <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm">Pagamento na reserva</span>}
-                  {plan.features.reviewsGoogle && <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs">Reviews Google</span>}
-                  {plan.features.noShowPaymentOption && <span className="px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-sm">Cobrança no-show</span>}
-                </div>
 
                 <div className="mt-6 flex items-center justify-between">
                   <a href="#" className="rounded-full bg-slate-900 px-5 py-3 text-white text-base font-semibold">Escolher {plan.label}</a>

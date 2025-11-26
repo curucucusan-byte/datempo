@@ -1,5 +1,5 @@
 {
-  "name": "agende-mais",
+  "name": "datempo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -33,6 +33,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "autoprefixer": "^10.4.21",
+    "cline": "^1.0.6",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "postcss": "^8.5.6",

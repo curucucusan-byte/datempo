@@ -1,0 +1,152 @@
+# 🕰️ DaTempo - Regras de Desenvolvimento
+
+## 📋 Identidade do Projeto
+
+**Nome:** DaTempo (NUNCA "ZapAgenda" ou "AgendeMais")
+**Slogan:** "Onde tudo dá tempo"
+**Filosofia:** Tranquilidade, simplicidade, aconchego - como no escritório da vovó
+
+## 🎨 Design System
+
+### Paleta de Cores (Verde + Madeira)
+```
+Verde WhatsApp: #10b981 (emerald-600)
+Madeira:        #8B6F47
+Papel Velho:    #F5EFE6
+Sépia:          #4A3F35
+Gradiente Logo: linear-gradient(to right, #10b981, #8B6F47)
+```
+
+### Uso de Cores
+- **Verde:** Botões primários, ações principais, WhatsApp
+- **Madeira:** Textos importantes, acentos, elementos vintage
+- **Gradiente:** Logos, títulos principais
+- **Evitar:** Azul predominante (exceto detalhes mínimos)
+
+### Tipografia
+- **Títulos:** Font Serif (elegante, vintage)
+- **Corpo:** Sans-serif (legibilidade)
+- **Código:** Monospace
+
+## ✍️ Tom de Voz
+
+### Características
+- Tranquilo e acolhedor
+- Sem pressa, sem correria
+- Confiança serena
+- Humanizado, caloroso
+
+### Exemplos
+✅ "Só um instantinho para conectar"
+✅ "Respira fundo, vamos organizar tudo"
+✅ "Onde tudo dá tempo ☕"
+❌ "Rápido! Configure agora!"
+❌ "Maximize sua produtividade"
+
+## 💻 Padrões de Código
+
+### Commits (Conventional Commits)
+```
+feat: adiciona nova funcionalidade
+fix: corrige bug
+docs: atualiza documentação
+style: formatação de código
+refactor: refatoração sem mudança de funcionalidade
+test: adiciona ou corrige testes
+chore: tarefas de manutenção
+```
+
+### TypeScript
+- Modo strict habilitado
+- Evitar `any`, preferir `unknown`
+- Tipar props de componentes
+- Usar tipos do Next.js quando disponíveis
+
+### React/Next.js
+- App Router (não Pages Router)
+- Server Components por padrão
+- Client Components apenas quando necessário ("use client")
+- Async Server Components para data fetching
+
+### Estrutura de Arquivos
+```
+src/app/           # Rotas e páginas
+src/app/api/       # API Routes
+src/components/    # Componentes reutilizáveis
+src/lib/           # Utilitários e lógica de negócio
+```
+
+## 🔧 Boas Práticas
+
+### Antes de Implementar
+1. Verificar se já existe código similar
+2. Consultar documentação em `/docs/1-ESTADO-ATUAL/`
+3. Seguir padrões existentes
+4. Pensar em escalabilidade
+
+### Durante Implementação
+1. Código limpo e legível
+2. Comentários em português quando necessário
+3. Tratamento de erros robusto
+4. Validação de inputs
+5. Rate limiting em APIs públicas
+
+### Depois de Implementar
+1. Testar manualmente
+2. Atualizar documentação relevante
+3. Commit com mensagem clara
+4. Verificar se quebrou algo
+
+## 🚫 O Que Evitar
+
+### Código
+- Código duplicado (DRY)
+- Magic numbers (usar constantes)
+- Funções muito longas (> 50 linhas)
+- Complexidade desnecessária
+- Dependências não utilizadas
+
+### Design
+- Múltiplas identidades visuais
+- Cores sem propósito
+- Inconsistência entre páginas
+- UI poluída
+
+### Documentação
+- Docs desatualizados (deletar se obsoleto)
+- Múltiplos docs sobre mesmo assunto
+- Informações contraditórias
+
+## 📊 Prioridades
+
+### Alta Prioridade
+1. Funcionalidades core funcionando
+2. Experiência do usuário suave
+3. Segurança e privacidade
+4. Performance
+
+### Média Prioridade
+1. UI/UX polido
+2. Documentação completa
+3. Testes automatizados
+4. Otimizações
+
+### Baixa Prioridade
+1. Features experimentais
+2. Refatorações não-críticas
+3. Otimizações prematuras
+
+## 🎯 Filosofia DaTempo
+
+**"Fazer bem feito, sem pressa"**
+
+- Preferir simplicidade sobre complexidade
+- Menos features bem feitas > muitas mal feitas
+- Código legível > código "inteligente"
+- Experiência do usuário > tecnologia exibicionista
+- Documentação clara > código autoexplicativo
+
+---
+
+**Última atualização:** 26/11/2025
+**Versão:** 1.0.0

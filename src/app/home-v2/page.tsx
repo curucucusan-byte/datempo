@@ -191,12 +191,6 @@ export default function HomeV2() {
                 title: "Painel completo",
                 description: "Gerencie horários, veja reservas e acompanhe métricas em tempo real.",
                 color: "rose"
-              },
-              {
-                icon: "⭐",
-                title: "Reviews Google",
-                description: "Solicite avaliações no Google automaticamente após o atendimento (plano Pro).",
-                color: "indigo"
               }
             ].map((feature, idx) => (
               <div
@@ -280,18 +274,6 @@ export default function HomeV2() {
                   </div>
                 </div>
 
-                {plan.features.paymentAtBooking && (
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                      Pagamento na reserva
-                    </span>
-                    {plan.features.reviewsGoogle && (
-                      <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
-                        Reviews Google
-                      </span>
-                    )}
-                  </div>
-                )}
 
                 <a
                   href="#"

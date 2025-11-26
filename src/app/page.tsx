@@ -66,7 +66,7 @@ export default function HomeV2() {
             {/* Hero Visual */}
             <div className="relative lg:pl-8">
               <div className="absolute -inset-4 bg-[#EDE5D8] rounded-3xl opacity-30 blur-3xl"></div>
-              <div className="relative rounded-3xl border-2 border-[#EDE5D8] bg-white p-8 sm:p-12 shadow-2xl">
+              <div className="relative">
                 <ImageCarousel />
               </div>
             </div>
@@ -117,12 +117,6 @@ export default function HomeV2() {
                 title: "Painel simples",
                 description: "Tudo que você precisa ver, sem firula. Direto ao ponto.",
                 color: "slate"
-              },
-              {
-                icon: "⭐",
-                title: "Reviews Google",
-                description: "Peça avaliações na hora certa. Seus clientes vão adorar.",
-                color: "yellow"
               }
             ].map((feature, idx) => {
               const colorClasses = {
@@ -216,18 +210,6 @@ export default function HomeV2() {
                   </div>
                 </div>
 
-                {plan.features.paymentAtBooking && (
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                      Pagamento na reserva
-                    </span>
-                    {plan.features.reviewsGoogle && (
-                      <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
-                        Reviews Google
-                      </span>
-                    )}
-                  </div>
-                )}
 
                 <a
                   href="#"
